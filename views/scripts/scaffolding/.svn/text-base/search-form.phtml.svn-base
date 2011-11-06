@@ -1,0 +1,5 @@
+<?php if ($this->searchForm): ?>
+<div <?php echo $this->searchActive ? 'class="zs-search-active" title="' . $this->translate('Search filter is active') . '"' : 'class="zs-search"'?> >
+<?php echo $this->searchForm; ?>
+</div>
+<?php endif; ?>

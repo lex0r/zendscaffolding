@@ -1,0 +1,17 @@
+K 25
+svn:wc:ra_dav:version-url
+V 67
+/svn/!svn/ver/69/branches/refactoring/tests/application/controllers
+END
+BooksController.php
+K 25
+svn:wc:ra_dav:version-url
+V 87
+/svn/!svn/ver/69/branches/refactoring/tests/application/controllers/BooksController.php
+END
+ReadersController.php
+K 25
+svn:wc:ra_dav:version-url
+V 89
+/svn/!svn/ver/69/branches/refactoring/tests/application/controllers/ReadersController.php
+END

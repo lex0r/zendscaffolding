@@ -1,0 +1,101 @@
+body {
+    font-size: 14px;
+}
+
+a.zs-btn-add {
+    color: green;
+}
+
+a.zs-btn-delete {
+    color: red;
+}
+
+a.zs-btn-edit {
+    color: blue;
+}
+
+input.zs-save, input.zs-saveedit, input.zs-savecreate {
+    margin-top: 15px;
+}
+
+input.zs-save {
+    font-weight: bold;
+}
+
+input.zs-btn-search, input.zs-btn-reset {
+    margin-top: 2px;
+}
+
+div.zs-search input.zs-btn-search {
+    font-weight:bold;
+}
+
+div.zs-search-active input.zs-btn-reset {
+    font-weight:bold;
+}
+
+input.zs-saveedit, input.zs-savecreate {
+    margin-left: 15px;
+}
+
+div.zs-pager {
+    font-size: 12px;
+}
+
+dl.zend_form {
+    margin: 0;
+}
+
+div.zs-search, div.zs-search-active {
+    padding: 10px;
+    margin: 10px 0 0;
+}
+
+table.zs-entity-list {
+    border-collapse: collapse;
+    border: 1px solid black;
+    font-size: 12px;
+    margin: 10px 0;
+}
+
+table.zs-entity-list th, table.zs-entity-list td{
+    border: 1px solid black;
+    padding: 2px 4px;
+}
+
+table.zs-entity-list th {
+    text-align: left;
+    background-color: lightgray;
+}
+
+table.zs-entity-list tr.zs-row-odd {
+    background-color: #EFEFEF;
+}
+
+div#zs-message {
+    border: 1px solid black;
+    padding: 5px;
+    margin: 10px 0;
+    font-weight: bold;
+}
+
+form.zs-edit-form dl dt,
+form.zs-search-form dl dt {
+    margin-bottom: 2px;
+}
+
+form.zs-edit-form dl dd,
+form.zs-search-form dl dd{
+    margin-bottom: 5px;
+}
+
+form.zs-edit-form ul.errors,
+form.zs-edit-form ul.errors li {
+    list-style: none;
+}
+
+form.zs-edit-form ul.errors {
+    padding: 0;
+    font-size: 12px;
+    color: red;
+}

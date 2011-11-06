@@ -1,0 +1,19 @@
+<?php echo $this->doctype()."\n" ?>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link href="<?php echo $this->baseUrl('/images/favicon.png')?>" rel="shortcut icon" />
+    <?php echo $this->headScript() ?>
+    <?php echo $this->headTitle() ?>
+</head>
+
+<body>
+<a href="<?= $this->url(array('controller' => 'books', 'action' => 'index'), 'default', true) ?>" >Books</a> |
+<a href="<?= $this->url(array('controller' => 'readers', 'action' => 'index'), 'default', true) ?>" >Readers</a> |
+<a href="<?= $this->url(array('controller' => 'book-categories', 'action' => 'index'), 'default', true) ?>" >Book categories</a> |
+<a href="<?= $this->url(array('controller' => 'book-catalogs', 'action' => 'index'), 'default', true) ?>" >Book catalogs</a> |
+<a href="<?= $this->url(array('controller' => 'reader-categories', 'action' => 'index'), 'default', true) ?>" >Reader categories</a>
+<br/><br/>
+<?php echo $this->layout()->content ?>
+</body>
+</html>

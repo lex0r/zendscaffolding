@@ -1,0 +1,4 @@
+<?php echo $this->partial('scaffolding/messages.phtml', $this) ?>
+<a href="<?php echo $this->url(array('module' => $this->module, 'controller' => $this->controller, 'action' => 'index'), 'default', true) ?>"><?php echo $this->translate('Back to list') ?></a>
+<h3><?php echo (isset($this->updateEntityText) ? $this->translate($this->updateEntityText) : $this->translate('Edit %1$s', $this->translate($this->entityTitle))) ?></h3>
+<?php echo $this->form ?>
