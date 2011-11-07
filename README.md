@@ -12,27 +12,27 @@ include it every time you want to use scaffolding. You will also have to copy vi
 your application or module directory, and 'js' and 'css' folders' contents to the same directories
 under 'public' folder.
 
-# Usage
-```php
-class MyController extends Zend_Controller_Scaffolding {
-    public function init() {
-        // $fields and $options are all optional
-        // use if you want to use advanced features
-        $this->initScaffolding(new ZendDbTableModel(), $fields, $options);
-    }
-}
-```
-
-## Basic use cases
+# Features
 1. Fetch, search and sort by any columns from one primary focus table and one or more related tables.
 Relations between table can be:
   - 1-1
   - 1-n
   - n-n
 
+# Usage
+## Basics
+```php
+class MyController extends Zend_Controller_Scaffolding {
+    public function init() {
+        // $fields and $options are all optional
+        // use if you want to use advanced features
+        $this->scaffold(new ZendDbTableModel(), $fields, $options);
+    }
+}
+```
 ## Field definitions
 
-$fields is an OPTIONAL array of fields with display/search/sorting/validation options like the following:
+`$fields` is an OPTIONAL array of fields with display/search/sorting/validation options like the following:
 
 ```php
 array(
@@ -149,7 +149,7 @@ Options:
 
 ## Options definitions
 
-$options is an OPTIONAL array with any of the following keys:
+`$options` is an OPTIONAL array with any of the following keys:
 
  * pkEditable - true or false - whether you are allowed to edit primary key
 
