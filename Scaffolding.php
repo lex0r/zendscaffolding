@@ -386,7 +386,6 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
                         $field = str_replace('_' . self::CSS_ID . '_to', '', $field);
                         $select->where("$tableName.$field <= ?", $value);
                     } else {
-                        echo "|$field - $value|";
                         // Search all other native fields.
                         if (isset($tableInfo['metadata'][$field])) {
                             $dataType = strtolower($tableInfo['metadata'][$field]['DATA_TYPE']);
@@ -435,8 +434,6 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
         if ($sortField) {
             $select->order("{$this->fields[$sortField]['sqlName']} $sortMode");
         }
-
-        echo "<span style=\"font-size: small\">$select</span>";
 
         /**
          * Prepare table header.
