@@ -535,7 +535,7 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
         if ($this->getRequest()->isPost() && $form->isValid($_POST)) {
             list($values, $relData) = $this->getDbValuesInsert($form->getValues());
 
-            if ($this->_beforeCreate($form, $values)) {
+            if ($this->beforeCreate($form, $values)) {
 
                 try {
                     Zend_Db_Table::getDefaultAdapter()->beginTransaction();
@@ -568,7 +568,7 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
 
                     $this->_helper->FlashMessenger($this->getActionMessage(self::ACTION_CREATE, self::MSG_OK));
 
-                    if ($this->_afterCreate($form, $insertId)) {
+                    if ($this->afterCreate($form, $insertId)) {
                         if (isset($_POST[self::BUTTON_SAVE])) {
                             $redirect = "{$this->view->module}/{$this->view->controller}/index";
                         } elseif (isset($_POST[self::BUTTON_SAVEEDIT])) {
@@ -623,10 +623,10 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
 
             $originalRow = clone $row;
 
-            if ($this->_beforeDelete($originalRow)) {
+            if ($this->beforeDelete($originalRow)) {
                 $row->delete();
                 $this->_helper->FlashMessenger($this->getActionMessage(self::ACTION_DELETE, self::MSG_OK));
-                if ($this->_afterDelete($originalRow)) {
+                if ($this->afterDelete($originalRow)) {
                     $this->_redirect("{$this->view->module}/{$this->view->controller}/index");
                 }
             }
@@ -679,7 +679,7 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
 
             // Save common submitted fields
             if (!is_null($values) && !is_null($where)) {
-                if ($this->_beforeUpdate($form, $values)) {
+                if ($this->beforeUpdate($form, $values)) {
 
                     try {
                         Zend_Db_Table::getDefaultAdapter()->beginTransaction();
@@ -710,7 +710,7 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
                         Zend_Db_Table::getDefaultAdapter()->commit();
                         $this->_helper->FlashMessenger($this->getActionMessage(self::ACTION_UPDATE, self::MSG_OK));
 
-                        if ($this->_afterUpdate($form)) {
+                        if ($this->afterUpdate($form)) {
                             $this->_redirect("{$this->view->module}/{$this->view->controller}/index");
                         }
                     } catch (Zend_Db_Exception $e) {
@@ -1153,16 +1153,16 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
 
         // Enable rich text editor for necessary fields
         if (count($rteFields)) {
-            $this->_loadRichTextEditor($rteFields);
+            $this->loadRichTextEditor($rteFields);
         }
 
         // Enable date picker
         if (count($datePickerFields)) {
-            $this->_loadDatePicker($datePickerFields);
+            $this->loadDatePicker($datePickerFields);
         }
 
         // Additionally process form
-        return $this->_prepareEditForm($form);
+        return $this->prepareEditForm($form);
     }
 
     /**
@@ -1371,13 +1371,13 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
 
         // Load JS files
         if (count($datePickerFields)) {
-            $this->_loadDatePicker($datePickerFields);
+            $this->loadDatePicker($datePickerFields);
         }
         $this->view->headScript()->appendFile($this->view->baseUrl("/js/zsutils.js"));
 
         $form['action'] = $this->view->url();
 
-        return $this->_prepareSearchForm($form);
+        return $this->prepareSearchForm($form);
     }
 
     /**
@@ -1653,7 +1653,7 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
      * @param array $form form configuration array
      * @return Zend_Form instance of Zend_Form
      */
-    protected function _prepareEditForm(array &$form)
+    protected function prepareEditForm(array &$form)
     {
         $formObject = new Zend_Form($form);
 
@@ -1682,7 +1682,7 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
      * @param array $form form configuration array
      * @return Zend_Form instance of Zend_Form
      */
-    protected function _prepareSearchForm(array &$form)
+    protected function prepareSearchForm(array &$form)
     {
         $formObject = new Zend_Form($form);
 
@@ -1704,7 +1704,7 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
      *
      * @param array $fields fields that use date picking
      */
-    protected function _loadDatePicker(array $fields)
+    protected function loadDatePicker(array $fields)
     {
     }
 
@@ -1714,7 +1714,7 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
      *
      * @param array $fields fields that use rich text editor
      */
-    protected function _loadRichTextEditor(array $fields)
+    protected function loadRichTextEditor(array $fields)
     {
     }
 
@@ -1724,7 +1724,7 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
      * @param Zend_Form $form submitted form object
      * @return true if creation must happen or false otherwise
      */
-    protected function _beforeCreate(Zend_Form $form, array &$formValues)
+    protected function beforeCreate(Zend_Form $form, array &$formValues)
     {
         return true;
     }
@@ -1737,7 +1737,7 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
      * @return true if automatic redirect must happen and false if user will
      *          redirect manually
      */
-    protected function _afterCreate(Zend_Form $form, $insertId)
+    protected function afterCreate(Zend_Form $form, $insertId)
     {
         return true;
     }
@@ -1749,7 +1749,7 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
      * @param array $formValues values as returned by getDbValuesUpdate method
      * @return true if update must happen or false otherwise
      */
-    protected function _beforeUpdate(Zend_Form $form, array &$formValues)
+    protected function beforeUpdate(Zend_Form $form, array &$formValues)
     {
         return true;
     }
@@ -1761,7 +1761,7 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
      * @return true if automatic redirect must happen and false if user will
      *          redirect manually
      */
-    protected function _afterUpdate(Zend_Form $form)
+    protected function afterUpdate(Zend_Form $form)
     {
         return true;
     }
@@ -1772,7 +1772,7 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
      * @param Zend_Db_Table_Row_Abstract $entity record to be deleted
      * @return true if deletion must happen or false otherwise
      */
-    protected function _beforeDelete(Zend_Db_Table_Row_Abstract $entity)
+    protected function beforeDelete(Zend_Db_Table_Row_Abstract $entity)
     {
         return true;
     }
@@ -1784,7 +1784,7 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
      * @return true if automatic redirect must happen and false if user will
      *          redirect manually
      */
-    protected function _afterDelete(Zend_Db_Table_Row_Abstract $entity)
+    protected function afterDelete(Zend_Db_Table_Row_Abstract $entity)
     {
         return true;
     }

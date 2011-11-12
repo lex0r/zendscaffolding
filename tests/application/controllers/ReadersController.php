@@ -90,16 +90,16 @@ class ReadersController extends Zend_Controller_Scaffolding
      *
      */
 
-    public function _loadDatePicker(array $fields) {
+    public function loadDatePicker(array $fields) {
         $this->view->headScript()->appendScript('// Date Picker Fields: ' . join(',', $fields));
     }
 
-    public function _beforeCreate(Zend_Form $form, array &$values) {
+    public function beforeCreate(Zend_Form $form, array &$values) {
         $values['created'] = date('Y-m-d H:i:s');
         return true;
     }
 
-    public function _beforeUpdate(Zend_Form $form, array &$values) {
+    public function beforeUpdate(Zend_Form $form, array &$values) {
         $values['updated'] = date('Y-m-d H:i:s');
         return true;
     }

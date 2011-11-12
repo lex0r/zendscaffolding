@@ -87,36 +87,36 @@ class BooksController extends Zend_Controller_Scaffolding
         parent::indexAction();
     }
 
-    public function  _loadRichTextEditor(array $fields) {
+    public function loadRichTextEditor(array $fields) {
         $this->view->headScript()->appendScript('// RTE Fields: ' . join(',', $fields));
     }
 
-    public function _beforeCreate(Zend_Form $form, array &$values) {
+    public function beforeCreate(Zend_Form $form, array &$values) {
         $values['created'] = date('Y-m-d H:i:s');
         return true;
     }
 
-    public function _beforeUpdate(Zend_Form $form, array &$values) {
+    public function beforeUpdate(Zend_Form $form, array &$values) {
         $values['updated'] = date('Y-m-d H:i:s');
         return true;
     }
 
-    public function  _beforeDelete(Zend_Db_Table_Row_Abstract $entity) {
+    public function beforeDelete(Zend_Db_Table_Row_Abstract $entity) {
         $this->getResponse()->setHeader('Before-Delete', 'OK');
         return true;
     }
 
-    public function _afterCreate(Zend_Form $form, $id) {
+    public function afterCreate(Zend_Form $form, $id) {
         $this->getResponse()->setHeader('After-Create', 'OK');
         return true;
     }
 
-    public function _afterUpdate(Zend_Form $form) {
+    public function afterUpdate(Zend_Form $form) {
         $this->getResponse()->setHeader('After-Update', 'OK');
         return true;
     }
 
-    public function _afterDelete(Zend_Db_Table_Row_Abstract $entity) {
+    public function afterDelete(Zend_Db_Table_Row_Abstract $entity) {
         $this->getResponse()->setHeader('After-Delete', 'OK');
         return true;
     }
