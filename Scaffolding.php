@@ -1515,6 +1515,12 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
 
         foreach ($entries as $entry) {
             $keys = array();
+
+            // Convert to array if object.
+            if (is_object($entry)) {
+              $entry = (array)$entry;
+            }
+
             // Fetch PK(s).
             foreach ($info['primary'] as $pk) {
                 $keys[$pk] = $entry[$pk];
