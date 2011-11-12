@@ -366,56 +366,52 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
             $searchForm->populate($filterFields);
 
             foreach ($filterFields as $field => $value) {
-                // Search by synthetic field
-                // @todo: re-design, too much not-isset-s :)
-                /*
-                if (!strpos($field, '_' . self::CSS_ID . '_') && !isset($this->fields[$field])
-                        && !isset($tableInfo['metadata'][$field])) {
-                    if (strpos($field, 'searchempty') !== false && $value) {
-                        $field = str_replace('searchempty', '', $field);
-                        $select->where("($tableName.$field IS NULL OR $field = '')");
-                        $searchActive = true;
-                    }
-                } else*/if ($value || is_numeric($value)) {
-                    // Search by date.
-                    // Date is a period, need to handle both start and end date.
-                    if (strpos($field, self::CSS_ID . '_from')) {
-                        $field = str_replace('_' . self::CSS_ID . '_from', '', $field);
-                        $select->where("$tableName.$field >= ?", $value);
-                    } elseif (strpos($field, self::CSS_ID . '_to')) {
-                        $field = str_replace('_' . self::CSS_ID . '_to', '', $field);
-                        $select->where("$tableName.$field <= ?", $value);
-                    } else {
-                        // Search all other native fields.
-                        if (isset($tableInfo['metadata'][$field])) {
-                            $dataType = strtolower($tableInfo['metadata'][$field]['DATA_TYPE']);
-                            $fieldType = isset($this->fields[$field]['type']) ? $this->fields[$field]['type'] : '';
-                        } else {
-                            // Search by related table field.
-                            // Column name was normalized, need to find it.
-                            $fieldDefs = array_keys($this->fields);
-                            foreach ($fieldDefs as $fieldName) {
-                                if (strpos($fieldName, '.') !== false && str_replace('.', '', $fieldName) == $field) {
-                                    $field = $fieldName;
-                                    break;
-                                }
-                            }
+              if ($value || is_numeric($value)) {
+                // Search by date.
+                // Date is a period, need to handle both start and end date.
+                if (strpos($field, self::CSS_ID . '_from')) {
+                    $field = str_replace('_' . self::CSS_ID . '_from', '', $field);
+                    $select->where("$tableName.$field >= ?", $value);
+                } elseif (strpos($field, self::CSS_ID . '_to')) {
+                    $field = str_replace('_' . self::CSS_ID . '_to', '', $field);
+                    $select->where("$tableName.$field <= ?", $value);
+                } else {
+                  // Search all other native fields.
+                  if (isset($tableInfo['metadata'][$field])) {
+                      $dataType = strtolower($tableInfo['metadata'][$field]['DATA_TYPE']);
+                      $fieldType = isset($this->fields[$field]['type']) ? $this->fields[$field]['type'] : '';
+                  } else {
+                      // Search by related table field.
+                      // Column name was normalized, need to find it.
+                      $fieldDefs = array_keys($this->fields);
+                      $fieldFound = false;
+                      foreach ($fieldDefs as $fieldName) {
+                          if (strpos($fieldName, '.') !== false && str_replace('.', '', $fieldName) == $field) {
+                              $field = $fieldName;
+                              $fieldFound = true;
+                              break;
+                          }
+                      }
 
-                            $dataType = $this->fields[$field]['type'];
+                      // The submitted form value is not from model, skip it.
+                      if (!$fieldFound) {
+                        continue;
+                      }
 
-                            list($tableName, $field) = explode('.', $this->fields[$field]['sqlName']);
-                        }
+                      $dataType = $this->fields[$field]['type'];
+                      list($tableName, $field) = explode('.', $this->fields[$field]['sqlName']);
+                  }
 
-                        if (in_array($dataType, array('char', 'varchar', 'text')) || $fieldType == 'text') {
-                            $select->where("$tableName.$field LIKE ?", $value);
-                        } else {
-                            $select->where("$tableName.$field = ?", $value);
-                        }
-                    }
-                    $searchActive = true;
-
+                  if (in_array($dataType, array('char', 'varchar', 'text')) || $fieldType == 'text') {
+                      $select->where("$tableName.$field LIKE ?", $value);
+                  } else {
+                      $select->where("$tableName.$field = ?", $value);
+                  }
                 }
-            }
+
+                $searchActive = true;
+              }
+          }
         }
 
         // Save criteria
