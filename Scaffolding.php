@@ -1528,8 +1528,8 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
                 }
 
                 list($table, $column) = explode('.', $columnDetails['sqlName']);
-                // Column not found by its SQL primary name, let's try alias.
-                if (empty($entry[$column])) {
+                // If alias exist or column not found by its SQL primary name, let's try alias.
+                if (strpos($columnName, '.') || empty($entry[$column])) {
                     $column = $columnName;
                 }
                 $value  = $entry[$column];
