@@ -371,15 +371,16 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
                 // Date is a period, need to handle both start and end date.
                 if (strpos($field, self::CSS_ID . '_from')) {
                     $field = str_replace('_' . self::CSS_ID . '_from', '', $field);
-                    $select->where("$tableName.$field >= ?", $value);
+                    $select->where("{$tableInfo['name']}.$field >= ?", $value);
                 } elseif (strpos($field, self::CSS_ID . '_to')) {
                     $field = str_replace('_' . self::CSS_ID . '_to', '', $field);
-                    $select->where("$tableName.$field <= ?", $value);
+                    $select->where("{$tableInfo['name']}.$field <= ?", $value);
                 } else {
                   // Search all other native fields.
                   if (isset($tableInfo['metadata'][$field])) {
                       $dataType = strtolower($tableInfo['metadata'][$field]['DATA_TYPE']);
                       $fieldType = isset($this->fields[$field]['type']) ? $this->fields[$field]['type'] : '';
+                      $tableName = $tableInfo['name'];
                   } else {
                       // Search by related table field.
                       // Column name was normalized, need to find it.
