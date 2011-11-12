@@ -8,9 +8,6 @@ class BooksController extends Zend_Controller_Scaffolding
     public function init()
     {
         $this->fields = array(
-            'id' => array(
-                'skip' => true
-            ),
             'title' => array(
                 'searchable' => true,
                 'sortable'  => true,
@@ -25,39 +22,51 @@ class BooksController extends Zend_Controller_Scaffolding
                 'type' => 'checkbox',
                 'searchable' => true
             ),
+            // We may need the ID value, so we fetch it.
             'category' => array(
+                'hide' => 'list', // do not show as separate column
+//                'searchable' => true,
+                'displayField' => 'Category.name', // use alternative column as displayed value for list/edit display
+            ),
+            // A foreign key field definition.
+            // Category is the name of the reference rule from model class.
+            // name is the column name that must be fetched
+            'Category.name' => array(
                 'title' => 'Category',
-                'asText' => true,
-                'asTextColumn'  => 'name',
                 'searchable' => true,
                 'sortable'  => true,
+                'order' => 3,
             ),
             'catalog' => array(
-                'title' => 'Catalog',
-                'asText' => true,
-                'asTextColumn'  => 'name',
+                'hide' => 'list',
+                'displayField' => 'Catalog.name',
                 'searchable' => true,
+            ),
+            'Catalog.name' => array(
+                'title' => 'Catalog',
+                //'searchable' => true,
                 'sortable'  => true,
+                'order' => 1,
             ),
             'created' => array(
-                'skip' => 'edit'
+                'hide' => 'edit'
             ),
             'updated' => array(
-                'skip' => 'edit'
+                'hide' => 'edit'
             )
         );
-        $this->initScaffolding(new Application_Model_Books(), $this->fields, array('csrfProtected' => false, 'entityTitle' => 'book'));
+        $this->scaffold(new Application_Model_Books(), $this->fields, array('csrfProtected' => false, 'entityTitle' => 'book'));
     }
 
     public function  indexAction() {
-        $this->initScaffolding(new Application_Model_Books(), $this->fields, array('csrfProtected' => false, 'entityTitle' => 'book'));
+        $this->scaffold(new Application_Model_Books(), $this->fields, array('csrfProtected' => false, 'entityTitle' => 'book'));
         parent::indexAction();
     }
 
     public function pagerAction() {
         $fields = array();
 
-        $this->initScaffolding(new Application_Model_Books(), $fields,
+        $this->scaffold(new Application_Model_Books(), $fields,
                 array(
                     'csrfProtected' => false,
                     'useIndexAction' => true,
@@ -69,7 +78,7 @@ class BooksController extends Zend_Controller_Scaffolding
     public function readonlyAction() {
         $fields = array();
 
-        $this->initScaffolding(new Application_Model_Books(), $fields,
+        $this->scaffold(new Application_Model_Books(), $fields,
                 array(
                     'csrfProtected' => false,
                     'useIndexAction' => true,

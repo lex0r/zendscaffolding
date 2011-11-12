@@ -9,5 +9,7 @@ class Application_Model_Readers extends Zend_Db_Table {
             'refColumns'        => 'id'
         ),
     );
+
+    protected $_dependentTables = array('Application_Model_ReadersBooks');
 }
 ?>

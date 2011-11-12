@@ -6,35 +6,34 @@ class ReadersController extends Zend_Controller_Scaffolding
     public function init()
     {
         $fields = array(
-            'id' => array(
-                'skip'      => true
-            ),
             'name' => array(
                 'title'     => 'First & last name',
                 'searchable'=> true,
             ),
+            'category' => array(
+                'hide'          => 'list',
+                'displayField'  => 'Category.name'
+            ),
+            'Category.name' => array(
+                'title' => 'Category',
+            ),
+            'updated' => array(
+                'hide'  => 'edit'
+            ),
             'created' => array(
                 'searchable'=> true,
                 'type'      => 'datepicker',
-                'skip'  => 'edit'
+                'hide'      => 'edit'
             ),
-            'category' => array(
-                'title' => 'Category',
-                'asTextColumn'  => 'name'
-            ),
-            'updated' => array(
-                'skip'  => 'edit'
-            ),
-            'books' => array(
+            'Books.title' => array(
                 'title'         => 'Assigned books',
-                'asTextColumn'  => 'title',
-                'dependentTable'=> new Application_Model_ReadersBooks()
             )
         );
 
-        $this->initScaffolding(new Application_Model_Readers(), $fields, array('csrfProtected' => false, 'entityTitle' => 'reader', 'disabledActions' => array(self::ACTION_DELETE)));
+        $this->scaffold(new Application_Model_Readers(), $fields, array('csrfProtected' => false, 'entityTitle' => 'reader', 'disabledActions' => array(self::ACTION_DELETE)));
     }
 
+    /*
     public function indexAction() {
         $fields = array(
             'id' => array(
@@ -88,6 +87,8 @@ class ReadersController extends Zend_Controller_Scaffolding
 
         parent::indexAction();
     }
+     *
+     */
 
     public function _loadDatePicker(array $fields) {
         $this->view->headScript()->appendScript('// Date Picker Fields: ' . join(',', $fields));
