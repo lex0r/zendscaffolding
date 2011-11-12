@@ -1,5 +1,0 @@
-<?php if ($this->canCreate):
-         $params = isset($this->actionParams['create']) ? $this->actionParams['create'] : array();
-?>
-<a class="zs-btn-add" href="<?php echo $this->url(array_merge(array('module' => $this->module, 'controller' => $this->controller, 'action' => 'create'), $params), 'default', true)?>"><?php echo isset($this->createEntityText) ? $this->translate($this->createEntityText) : $this->translate('New %1$s', $this->translate($this->entityTitle)) ?></a>
-<?php endif; ?>

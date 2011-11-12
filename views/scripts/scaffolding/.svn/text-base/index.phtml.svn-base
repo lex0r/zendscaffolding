@@ -1,7 +1,0 @@
-<?php echo $this->partial('scaffolding/messages.phtml', $this) ?>
-
-<?php echo $this->partial('scaffolding/add-button.phtml', $this) ?>
-
-<?php echo $this->partial('scaffolding/search-form.phtml', $this) ?>
-
-<?php echo $this->partial('scaffolding/list.phtml', $this) ?>
