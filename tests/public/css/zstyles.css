@@ -1,4 +1,7 @@
-<style type="text/css">
+body {
+    font-size: 14px;
+}
+
 a.zs-btn-add {
     color: green;
 }
@@ -19,12 +22,33 @@ input.zs-save {
     font-weight: bold;
 }
 
+input.zs-btn-search, input.zs-btn-reset {
+    margin-top: 2px;
+}
+
+div.zs-search input.zs-btn-search {
+    font-weight:bold;
+}
+
+div.zs-search-active input.zs-btn-reset {
+    font-weight:bold;
+}
+
 input.zs-saveedit, input.zs-savecreate {
     margin-left: 15px;
 }
 
 div.zs-pager {
     font-size: 12px;
+}
+
+dl.zend_form {
+    margin: 0;
+}
+
+div.zs-search, div.zs-search-active {
+    padding: 10px;
+    margin: 10px 0 0;
 }
 
 table.zs-entity-list {
@@ -36,11 +60,16 @@ table.zs-entity-list {
 
 table.zs-entity-list th, table.zs-entity-list td{
     border: 1px solid black;
-    padding: 1px 2px;
+    padding: 2px 4px;
+}
+
+table.zs-entity-list th {
+    text-align: left;
+    background-color: lightgray;
 }
 
 table.zs-entity-list tr.zs-row-odd {
-    background-color: #DFDFDF;
+    background-color: #EFEFEF;
 }
 
 div#zs-message {
@@ -50,11 +79,13 @@ div#zs-message {
     font-weight: bold;
 }
 
-form.zs-edit-form dl dt {
+form.zs-edit-form dl dt,
+form.zs-search-form dl dt {
     margin-bottom: 2px;
 }
 
-form.zs-edit-form dl dd {
+form.zs-edit-form dl dd,
+form.zs-search-form dl dd{
     margin-bottom: 5px;
 }
 
@@ -68,5 +99,3 @@ form.zs-edit-form ul.errors {
     font-size: 12px;
     color: red;
 }
-
-</style>

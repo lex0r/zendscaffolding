@@ -1,9 +1,4 @@
-<?php require "styles.html" ?>
-<?php if (count($this->messages)): ?>
-<div id="zs-message">
-<?php echo join('<br/>', $this->messages) ?>
-</div>
-<?php endif; ?>
-<a href="<?php echo $this->url(array('module' => $this->module, 'controller' => $this->controller, 'action' => 'index'), 'default', true) ?>">Back to list</a>
-<h3>New <?php echo $this->entityTitle ?></h3>
+<?php echo $this->partial('scaffolding/messages.phtml', $this) ?>
+<a href="<?php echo $this->url(array('module' => $this->module, 'controller' => $this->controller, 'action' => 'index'), 'default', true) ?>"><?php echo $this->translate('Back to list') ?></a>
+<h3><?php echo isset($this->createEntityText) ? $this->translate($this->createEntityText) : $this->translate('New %1$s', $this->translate($this->entityTitle)) ?></h3>
 <?php echo $this->form ?>
