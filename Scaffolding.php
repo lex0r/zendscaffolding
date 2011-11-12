@@ -327,10 +327,10 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
 
         if ($this->dbSource instanceof Zend_Db_Table_Abstract) {
             $select = $this->dbSource->select();
-            $select->from($this->dbSource, $this->getFullColumnNames($tableName, $fields));
+            $select->from($this->dbSource, $this->getFullColumnNames($tableInfo['name'], $fields));
         } else {
             $select = $this->dbSource;
-            $select->from($this->dbSource->getTable(), $this->getFullColumnNames($tableName, $fields));
+            $select->from($this->dbSource->getTable(), $this->getFullColumnNames($tableInfo['name'], $fields));
         }
 
         if (count($joinOn)) {
