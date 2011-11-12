@@ -811,8 +811,8 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
             }
 
             // Skip the field?
-            if (!empty($columnDetails['hide']) && ($columnDetails['hide'] === true
-                 || $columnDetails['hide'] == 'edit')) {
+            if (!empty($this->fields[$columnName]['hide']) && ($this->fields[$columnName]['hide'] === true
+                 || $this->fields[$columnName]['hide'] == 'edit')) {
                  continue;
             }
 
