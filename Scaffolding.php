@@ -346,10 +346,9 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
          */
         $searchActive = false;
         if (count($searchFields)) {
-
             // Create unique search session variable.
             // @todo: test if it is unique in ALL cases
-            $nsName = self::CSS_ID . '_' . join('_', array_keys($searchFields));
+            $nsName = $tableInfo['name'] . '_' . join('_', array_keys($searchFields));
             $searchParams   = new Zend_Session_Namespace($nsName);
             $searchForm     = $this->buildSearchForm($searchFields);
 
