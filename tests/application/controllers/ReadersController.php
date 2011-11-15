@@ -17,16 +17,17 @@ class ReadersController extends Zend_Controller_Scaffolding
             'Category.name' => array(
                 'title' => 'Category',
             ),
-            'updated' => array(
-                'hide'  => 'edit'
-            ),
             'created' => array(
                 'searchable'=> true,
                 'type'      => 'datepicker',
                 'hide'      => 'edit'
             ),
+            'updated' => array(
+                'hide'  => 'edit',
+                'listOrder' => 2
+            ),
             'Books.title' => array(
-                'title'         => 'Assigned books',
+                'title' => 'Assigned books',
             )
         );
 

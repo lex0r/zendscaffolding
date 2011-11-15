@@ -253,9 +253,11 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
         }
 
         // Process primary/related table fields.
+        $defaultOrder = 1;
         foreach ($this->fields as $columnName => $columnDetails) {
             $tableName      = $tableInfo['name'];
             $defColumnName  = $columnName;
+            $this->fields[$columnName]['order'] = $defaultOrder++;
 
             /**
              * Check if the column belongs to a related table.
@@ -432,6 +434,7 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
         }
 
         // Sort fields for listing.
+        $this->fields = array_filter($this->fields, array($this, 'removeHiddenListItems'));
         uasort($this->fields, array($this, 'sortByListOrder'));
 
         /**
@@ -1811,30 +1814,40 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
      * Sorts fields for listing.
      */
     function sortByListOrder($a, $b) {
-        if (isset($a['listOrder']) && isset($b['listOrder'])) {
-            return $a['listOrder'] - $b['listOrder'];
+        if (!isset($a['listOrder'])) {
+            $a['listOrder'] = $a['order'];
         }
-        elseif (isset($a['listOrder']) && !isset($b['listOrder'])) {
-            return 0;
+
+        if (!isset($b['listOrder'])) {
+            $b['listOrder'] = $b['order'];
         }
-        elseif (!isset($a['listOrder']) && isset($b['listOrder'])) {
-            return 0;
-        }
+
+        return $a['listOrder'] - $b['listOrder'];
     }
 
     /**
      * Sorts fields for listing.
      */
     function sortByEditOrder($a, $b) {
-        if (isset($a['editOrder']) && isset($b['editOrder'])) {
-            return $a['editOrder'] - $b['editOrder'];
+        if (!isset($a['editOrder'])) {
+            $a['editOrder'] = $a['order'];
         }
-        elseif (isset($a['editOrder']) && !isset($b['editOrder'])) {
-            return 0;
+
+        if (!isset($b['editOrder'])) {
+            $b['editOrder'] = $b['order'];
         }
-        elseif (!isset($a['editOrder']) && isset($b['editOrder'])) {
-            return 0;
+
+        return $a['editOrder'] - $b['editOrder'];
+    }
+
+    /**
+     * Removes elements that must be skipped from listing.
+     */
+    function removeHiddenListItems($value) {
+        if (!empty($value['hide']) && ($value['hide'] === true || $value['hide'] == 'list')) {
+            return false;
         }
+        return true;
     }
 }
 
