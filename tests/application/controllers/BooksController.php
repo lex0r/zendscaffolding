@@ -11,16 +11,22 @@ class BooksController extends Zend_Controller_Scaffolding
             'title' => array(
                 'searchable' => true,
                 'sortable'  => true,
-                'sortBy'  => 'desc'
+                'sortBy'  => 'desc',
+                'listOrder' => 1,
+                'editOrder' => 1,
             ),
             'description' => array(
                 'type'  => 'richtextarea',
                 'rows'  => 5,
-                'cols'  => 40
+                'cols'  => 40,
+                'listOrder' => 2,
+                'editOrder' => 2,
             ),
             'available' => array(
                 'type' => 'checkbox',
-                'searchable' => true
+                'searchable' => true,
+                'listOrder' => 5,
+                'editOrder' => 5,
             ),
             // We may need the ID value, so we fetch it.
             'category' => array(
@@ -35,7 +41,8 @@ class BooksController extends Zend_Controller_Scaffolding
                 'title' => 'Category',
                 'searchable' => true,
                 'sortable'  => true,
-                'order' => 3,
+                'listOrder' => 3,
+                'editOrder' => 3,
             ),
             'catalog' => array(
                 'hide' => 'list',
@@ -46,13 +53,18 @@ class BooksController extends Zend_Controller_Scaffolding
                 'title' => 'Catalog',
                 //'searchable' => true,
                 'sortable'  => true,
-                'order' => 1,
+                'listOrder' => 4,
+                'editOrder' => 4,
             ),
             'created' => array(
-                'hide' => 'edit'
+                'hide' => 'edit',
+                'listOrder' => 7,
+                'editOrder' => 7,
             ),
             'updated' => array(
-                'hide' => 'edit'
+                'hide' => 'edit',
+                'listOrder' => 6,
+                'editOrder' => 6,
             )
         );
         $this->scaffold(new Application_Model_Books(), $this->fields, array('csrfProtected' => false, 'entityTitle' => 'book'));

@@ -431,6 +431,9 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
             $select->order("{$this->fields[$sortField]['sqlName']} $sortMode");
         }
 
+        // Sort fields for listing.
+        uasort($this->fields, array($this, 'sortByListOrder'));
+
         /**
          * Prepare table header.
          */
@@ -1514,7 +1517,7 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
 
             // Convert to array if object.
             if (is_object($entry)) {
-              $entry = (array)$entry;
+                $entry = (array)$entry;
             }
 
             // Fetch PK(s).
@@ -1802,6 +1805,36 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
         }
 
         return $string;
+    }
+
+    /**
+     * Sorts fields for listing.
+     */
+    function sortByListOrder($a, $b) {
+        if (isset($a['listOrder']) && isset($b['listOrder'])) {
+            return $a['listOrder'] - $b['listOrder'];
+        }
+        elseif (isset($a['listOrder']) && !isset($b['listOrder'])) {
+            return 0;
+        }
+        elseif (!isset($a['listOrder']) && isset($b['listOrder'])) {
+            return 0;
+        }
+    }
+
+    /**
+     * Sorts fields for listing.
+     */
+    function sortByEditOrder($a, $b) {
+        if (isset($a['editOrder']) && isset($b['editOrder'])) {
+            return $a['editOrder'] - $b['editOrder'];
+        }
+        elseif (isset($a['editOrder']) && !isset($b['editOrder'])) {
+            return 0;
+        }
+        elseif (!isset($a['editOrder']) && isset($b['editOrder'])) {
+            return 0;
+        }
     }
 }
 
