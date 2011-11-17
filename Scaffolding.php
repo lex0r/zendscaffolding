@@ -534,7 +534,7 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
 
         $form = $this->buildEditForm();
 
-        if ($this->getRequest()->isPost() && $form->isValid($_POST)) {
+        if ($this->getRequest()->isPost() && $form->isValid($this->_getAllParams())) {
             list($values, $relData) = $this->getDbValuesInsert($form->getValues());
 
             if ($this->beforeCreate($form, $values)) {
@@ -672,7 +672,7 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
         $form = $this->buildEditForm($entity);
         $populate = true;
 
-        if ($this->getRequest()->isPost() && $form->isValid($_POST)) {
+        if ($this->getRequest()->isPost() && $form->isValid($params)) {
             $populate = false;
             $formValues = $form->getValues();
             $pkValue = $formValues[array_shift($info['primary'])];
