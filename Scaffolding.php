@@ -259,14 +259,14 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
             $defColumnName  = $columnName;
             $this->fields[$columnName]['order'] = $defaultOrder++;
 
-            /**
-             * Check if the column belongs to a related table.
-             */
+            // Check if the column belongs to a related table.
             $fullColumnName = explode('.', $columnName);
             if (count($fullColumnName) == 2) {
+                $refName = $fullColumnName[0];
+                $refDisplayField = $fullColumnName[1];
                 // Column is a FK.
-                if (in_array($fullColumnName[0], $tableRelations)) {
-                  $ruleDetails = $tableInfo['referenceMap'][$fullColumnName[0]];
+                if (in_array($refName, $tableRelations)) {
+                  $ruleDetails = $tableInfo['referenceMap'][$refName];
                   // @todo: what if columns are an array?
                   $mainColumn = $ruleDetails['columns'];
                   $refColumn = is_array($ruleDetails['refColumns']) ?
@@ -282,32 +282,53 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
                   // Change current table and column to be used later.
                   // Aliases are used to evade same column names from joined tables.
                   $tableName  = $relatedTableName;
-                  $columnName = array($defColumnName => $fullColumnName[1]);
+                  $columnName = array($defColumnName => $refDisplayField);
                 } else {
-                    // Column is a FK for a dependent table
+                    $isDependentTableColumn = false;
+                    // Check if column is from a dependent table.
+                    foreach ($tableInfo['dependentTables'] as $depTableClass)  {
+                        $dependentTable = new $depTableClass;
+                        if (!$dependentTable instanceof Zend_Db_Table_Abstract) {
+                            throw new Zend_Controller_Exception('Zend_Controller_Scaffolding requires a Zend_Db_Table_Abstract as model providing class.');
+                        }
+
+                        // Do not call me
+                        $relatedTableMetadata = $dependentTable->info();
+                        $references = $relatedTableMetadata['referenceMap'];
+                        // Reference with such name may not be defined...
+                        if (!isset($references[$refName])) {
+                            continue;
+                        }
+
+                        $ruleDetails = $references[$refName];
+
+                        // @todo: what if columns are an array?
+                        $mainColumn = is_array($ruleDetails['refColumns']) ?
+                                array_shift($ruleDetails['refColumns']) : $ruleDetails['refColumns'];
+                        $refColumn = $ruleDetails['columns'];
+
+                        $relatedTableName = $relatedTableMetadata['name'];
+                        $joinOn[$relatedTableName] = "$tableName.$mainColumn = $relatedTableName.$refColumn";
+
+                        // Change current table and column to be used later.
+                        // Aliases are used to evade same column names from joined tables.
+                        $tableName  = $relatedTableName;
+                        $columnName = array($defColumnName => $refDisplayField);
+
+                        $isDependentTableColumn = true;
+                        break;
+                    }
+
+                    // Column is neither FK nor a dependent table column
                     // so we can't show it, search or sort by it.
-                    unset($this->fields[$columnName]);
-                    continue;
+                    if (!$isDependentTableColumn) {
+                        unset($this->fields[$columnName]);
+                        continue;
+                    }
                 }
             }
 
-            // Fetch fields respecting their order.
-            // @todo: implement!
-            $order = isset($this->fields[$defColumnName]['order']) ?
-                     $this->fields[$defColumnName]['order'] : null;
-            if ($order) {
-                if (empty($fields[$tableName])) {
-                    $fields[$tableName] = array();
-                }
-
-                if (!empty($fields[$tableName][$order])) {
-                    $fields[$tableName][$order] = $columnName;
-                } else {
-                    $fields[$tableName][] = $columnName;
-                }
-            } else {
-                $fields[$tableName][] = $columnName;
-            }
+            $fields[$tableName][] = $columnName;
 
             // Prepare search form fields.
             if (!empty($this->fields[$defColumnName]['searchable'])) {
@@ -415,10 +436,6 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
               }
           }
         }
-
-        // Save criteria
-        // @todo: this was used to allow additional filtering using existing select
-        // $this->scaffSelectCriteria = clone $select;
 
         /**
          * Handle sorting by modifying SQL and building header sorting links.
