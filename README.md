@@ -1,10 +1,12 @@
 # Overview
- This Zend controller extension class allows you to quickly scaffold
- an feature-rich record management interface using Zend MVC core components.
- The controllers you would like to scaffold must extend this one, and you will
- automatically have create, update, delete and list actions
- with search, sorting and pagination. Current scaffolding implementation
+This Zend controller extension class allows you to quickly scaffold
+an feature-rich record management interface using Zend MVC core components.
+The controllers you would like to scaffold must extend this one, and you will
+automatically have create, update, delete and list actions
+with search, sorting and pagination. Current scaffolding implementation
 is fully based on ZF MVC stack and depends on ALL the components (models, views and certainly controllers).
+
+**Please, use 1.0-beta1 (see it under Tags).**
 
 # Features
 ## Create, update, delete records
