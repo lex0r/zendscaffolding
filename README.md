@@ -1,23 +1,38 @@
 # Overview
-This Zend Framework controller extension class allows you to quickly scaffold
-an administrative interface for an application, using Zend MVC core components.
-The controllers you would like to scaffold must extend this one, and you will
-automatically have create, update, delete and list actions for a model. Current
-scaffolding implementation is fully based on ZF MVC stack and
-uses ALL the components (models, views and certainly controllers).
+ This Zend controller extension class allows you to quickly scaffold
+ an feature-rich record management interface using Zend MVC core components.
+ The controllers you would like to scaffold must extend this one, and you will
+ automatically have create, update, delete and list actions
+ with search, sorting and pagination. Current scaffolding implementation
+is fully based on ZF MVC stack and depends on ALL the components (models, views and certainly controllers).
+
+# Features
+## Create, update, delete records
+You can easily manage your data using CRUD interface, by just
+providing a model. For better UX you should provide more options
+to the fields and scaffolding itself. See field and scaffolding options.
+
+## Fetch primary and related table information
+Fetch, search and sort by any columns from one primary focus table and one or more related tables.
+Relations between table can be:
+* 1-1 (e.g. user - user account)
+* 1-n (e.g. category - articles)
+* n-n (e.g. readers - loaned books)
+
+You are able to see, sort and search by any field from any related table. For this you have to:
+* define `_referenceMap` and `_dependentTables` arrays for models
+* define correct field options
+
+## Provide custom select queries
+You can create any complex SQL query using standard Zend_Db_Select.
+And you can easily make the result searchable and sortable. Computed fields
+are now also supported.
 
 # Installation notes
 Place the file Scaffolding.php to Zend/Controller directory to use autoloading, or simply
 include it every time you want to use scaffolding. You will also have to copy views directory to
 your application or module directory, and 'js' and 'css' folders' contents to the same directories
 under 'public' folder.
-
-# Features
-1. Fetch, search and sort by any columns from one primary focus table and one or more related tables.
-Relations between table can be:
-  - 1-1
-  - 1-n
-  - n-n
 
 # Usage
 ## Basics
@@ -30,6 +45,32 @@ class MyController extends Zend_Controller_Scaffolding {
     }
 }
 ```
+## Custom query
+```php
+class MyController extends Zend_Controller_Scaffolding {
+    public function init() {
+        $select = new Zend_Db_Select();
+        $select->from(array('t1' => 'table1'), array('field'))
+               ->joinLeft(array('t2' => 'table2'), 't1.fk = t2.pk', array('field'))
+               ->where('t1.field = ?', 'value')
+        $fields = array(
+            't1.field' => array(
+                'title' => 'Some title'
+                'dataType' => 'text'
+            ),
+            't2.field' => array(
+                'title' => 'Another field',
+                'dataType' => 'integer'
+            ),
+        );
+        // use if you want to use advanced features
+        $this->scaffold($select, $fields);
+    }
+}
+```
+## Please, give a try to the attached demo application (under tests/) for
+an idea of what this cool component can do for you! Also, it contains PHPUnit tests.
+
 ## Field definitions
 
 `$fields` is an OPTIONAL array of fields with display/search/sorting/validation options like the following:
@@ -47,17 +88,6 @@ array(
 Options:
 
  * title - display label in create/update form and column title in the list.
-
- * type - field type that affects how the fields is rendered (e.g. 'checkbox')
-    If you want to force certain type for multi-selection fields use 'multicheckbox' or 'multiselect'.
-    For single choice fields use 'radio' or 'select'.
-    For integer flag field, usually stored as TINYINT and having values 0 or 1, use 'checkbox'
-    To force text field display as multi-line use 'textarea', for single line field use 'text'.
-    Additionally, for text fields you may use 'richtextarea' type, and define _loadRichTextEditor method to use rich text features.
-    If you want to use a JavaScript date picker use 'datepicker' as type, and define _loadDatePicker method.
-    Also, if you supply a custom select object (using Zend_Db_Select) you should specify the type
-    for the the searchable fields (because metadata are unavailable in this case). Available types are now
-    'date' for simple date field, 'datepicker' as mentioned above, 'text' for single line text fields.
 
  * required - is the fields mandatory (true or false), and also 'onCreate' if not required when updating (for not changing the existing value).
 
@@ -78,8 +108,6 @@ Options:
 
  * searchable - use to expose the field as list filtering criterion.
 
- * searchEmpty - use to filter by empty values of a field; an extra checkbox is created on the form next to the field
-
  * searchOptions - choose a value from the list to filter the field by (if searchable is true)
     Additionally, use 'type' => 'radio' for radio-style options or 'type' => 'select' for select-style.
 
@@ -98,6 +126,21 @@ Options:
 ```php
 'displayField' => 'Category.name'` (reference named Category will be used to fetch column text value from field 'name')
 ```
+ * dataType - makes sense only in case of custom Zend_Db_Select query.
+    Field type affects how the fields is treated during search.
+    Possible values are: text, integer, date, datetime.
+
+ * fieldType - affects how the field is rendered in search/edit forms.
+    Edit form case:
+      If you want to force certain type for multi-selection fields use 'multicheckbox' or 'multiselect'.
+
+    All cases:
+      For single choice fields use 'radio' or 'select'.
+      For integer flag field, usually stored as TINYINT and having values 0 or 1, use 'checkbox'
+      To force text field display as multi-line use 'textarea', for single line field use 'text' (default).
+
+    Additionally, for text fields you may use 'richtextarea' type, and define `loadRichTextEditor` method to use rich text features.
+    If you want to use a JavaScript date picker use 'jsPicker' as type, and define `loadDatePicker` method.
 
  * translate - set to true if you want the field's value to be translated
 

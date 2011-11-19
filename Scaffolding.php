@@ -31,13 +31,14 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /**
  * This Zend controller extension class allows you to quickly scaffold
- * and admin interface for an application, using Zend MVC core components.
+ * an feature-rich record management interface using Zend MVC core components.
  * The controllers you would like to scaffold must extend this one, and you will
- * automatically have create, update, delete and list actions.
+ * automatically have create, update, delete and list actions
+ * with search, sorting and pagination.
  *
  * @author Alex Oroshchuk (oroshchuk@gmail.com)
  * @copyright 2011 Alex Oroshchuk
- * @version 0.8.1
+ * @version 1.0
  */
 
 class Zend_Controller_Scaffolding extends Zend_Controller_Action
@@ -101,15 +102,6 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
             self::MSG_ERR => 'Failed to delete %s.'
         )
     );
-
-    /**
-     * Data providing class.
-     * @var Zend_Db_Table_Abstract|Zend_Db_Table_Select|Zend_Db_Select
-     */
-    /**
-     * @todo: URGENT refactor scaffSelectCriteria
-     */
-    // protected $scaffSelectCriteria;
 
     /**
      * Default scaffolding options.
@@ -743,16 +735,7 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
                 throw new Zend_Controller_Exception("Fields of type '$dataType' are not searchable.");
             }
 
-            // Allow to search empty records
-//            if (isset($this->fields[$columnName]['searchEmpty'])) {
-//                $form['elements']["{$columnName}searchempty"] = array(
-//                        'checkbox',
-//                        array(
-//                            'class' => self::CSS_ID . '-search-radio',
-//                            'label' => $this->getColumnTitle($columnName) . _(' is empty'),
-//                        )
-//                    );
-//            }
+            //@todo: allow to search for certain empty values
         }
 
         $form['elements']['submit'] = array(
@@ -1388,7 +1371,6 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
             }
 
             // Save custom attributes
-            // @todo: why here?
             if (isset($this->fields[$columnName]['attribs'])
                     && is_array($this->fields[$columnName]['attribs'])) {
                 $form['elements'][$columnName][1] = array_merge($form['elements'][$columnName][1], $this->fields[$columnName]['attribs']);
@@ -1485,15 +1467,6 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
                     // (Zend_Form_Element::filterName does it anyway).
                     $columnName = str_replace('.', '', $columnName);
                 }
-                // @todo: remove the code below if not needed
-//                $dataType = '';
-//                if (in_array($columnDetails['type'], array('date', 'datepicker', 'datetime'))) {
-//                    $fieldType = 'date';
-//                } elseif ($columnDetails['type'] == 'text') {
-//                    $fieldType = 'text';
-//                } else {
-//                    throw new Zend_Controller_Exception("Fields of type '{$columnDetails['type']}' are not searchable.");
-//                }
             }
 
             $matches = array();
