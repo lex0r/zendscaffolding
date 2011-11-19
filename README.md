@@ -15,13 +15,15 @@ to the fields and scaffolding itself. See field and scaffolding options.
 ## Fetch primary and related table information
 Fetch, search and sort by any columns from one primary focus table and one or more related tables.
 Relations between table can be:
-* 1-1 (e.g. user - user account)
-* 1-n (e.g. category - articles)
-* n-n (e.g. readers - loaned books)
+
+ * 1-1 (e.g. user - user account)
+ * 1-n (e.g. category - articles)
+ * n-n (e.g. readers - loaned books)
 
 You are able to see, sort and search by any field from any related table. For this you have to:
-* define `_referenceMap` and `_dependentTables` arrays for models
-* define correct field options
+
+ * define `_referenceMap` and `_dependentTables` arrays for models
+ * define correct field options
 
 ## Provide custom select queries
 You can create any complex SQL query using standard Zend_Db_Select.
@@ -68,7 +70,8 @@ class MyController extends Zend_Controller_Scaffolding {
     }
 }
 ```
-## Please, give a try to the attached demo application (under tests/) for
+## Demo is available!
+Please, give a try to the attached demo application (under tests/) for
 an idea of what this cool component can do for you! Also, it contains PHPUnit tests.
 
 ## Field definitions
