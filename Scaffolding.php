@@ -1085,6 +1085,12 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
                     if (!isset($references[$refName])) {
                         continue;
                     }
+                    // For now, skip back-references (reference to the current entity table).
+                    // @todo: would it be nice to update dependent table columns?
+                    elseif ($references[$refName]['refTableClass'] == $tableClass) {
+                        continue;
+                    }
+                    // All is fine, this is a true n-n table.
                     else {
                         $reference = $references[$refName];
                     }
