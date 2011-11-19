@@ -1,5 +1,5 @@
 <?php $cycle = $this->cycle(array("even", "odd")); ?>
-<?php if (count($this->entries)): ?>
+<?php if (count($this->items)): ?>
 <table class="zs-entity-list <?php echo 'zs-' . $this->entityTitle ?>" cellspacing="0" cellpadding="0" border="0">
     <thead>
         <tr>
@@ -12,7 +12,7 @@
         </tr>
     </thead>
     <tbody>
-<?php foreach ($this->entries as $entry): ?>
+<?php foreach ($this->items as $entry): ?>
     <tr <?php echo 'class="zs-row-' . $cycle->next() . '"' ?>>
         <?php
         foreach($entry as $field => $value):

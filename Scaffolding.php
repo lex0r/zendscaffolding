@@ -71,6 +71,11 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
     const CSS_ID  = 'zs';
 
     /**
+     * Default number of items in listing per page.
+     */
+    const ITEMS_PER_PAGE = 10;
+
+    /**
      * Create form button default labels.
      */
     protected $buttonLabels    = array(
@@ -177,11 +182,15 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
         }
 
         // If readonly restrict all other actions except for index and list
-        // @todo: reverse check - enable readonly if all actions disabled
+        $modActions = array(self::ACTION_CREATE, self::ACTION_DELETE, self::ACTION_UPDATE);
         if (!empty($options['readonly'])) {
-            $this->options['disabledActions'] =
-                array(self::ACTION_CREATE, self::ACTION_DELETE, self::ACTION_UPDATE);
+            $this->options['disabledActions'] = $modActions;
         }
+        // All actions are disabled, apply 'readonly'
+        elseif (count(array_intersect($this->options['disabledActions'], $modActions)) == 3) {
+            $this->options['readonly'] = true;
+        }
+        $this->view->readonly = $this->options['readonly'];
 
         $action = $this->getRequest()->getActionName();
         if (in_array($action, $this->options['disabledActions'])) {
@@ -229,9 +238,7 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
      */
     public function indexAction()
     {
-        $fields         = array();
-        $searchFields   = array();
-        $sortingFields  = array();
+        $fields = $searchFields = $sortingFields  = array();
         $defSortField   = null;
         $searchForm     = null;
         $searchActive   = false;
@@ -418,7 +425,7 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
 
                       // The submitted form value is not from model, skip it.
                       if (!$fieldFound) {
-                        continue;
+                          continue;
                       }
 
                       $dataType = $this->fields[$field]['type'];
@@ -454,73 +461,10 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
         $this->fields = array_filter($this->fields, array($this, 'removeHiddenListItems'));
         uasort($this->fields, array($this, 'sortByListOrder'));
 
-        /**
-         * Prepare table header.
-         */
-        $header = array();
-        foreach ($this->fields as $columnName => $columnDetails) {
-            if (!empty($columnDetails['hide']) && ($columnDetails['hide'] === true
-                 || $columnDetails['hide'] == 'list')) {
-                 continue;
-            }
+        $this->prepareHeader($sortField, $sortMode);
 
-            $name = $this->translate($this->getColumnTitle($columnName));
-            // Generate sorting link
-            if (!empty($this->fields[$columnName]['sortable'])) {
+        $this->prepareList($select);
 
-                $currentMode = ($sortField == $columnName ? $sortMode : '');
-
-                if ($currentMode == 'asc') {
-                    $counterOrder   = 'desc';
-                    $class          = self::CSS_ID . '-sort-desc';
-                } elseif ($currentMode == 'desc') {
-                    $counterOrder   = 'asc';
-                    $class          = self::CSS_ID . '-sort-asc';
-                } else {
-                    $counterOrder   = 'asc';
-                    $class          = '';
-                }
-
-                $sortParams = array(
-                    'orderby'   => $columnName,
-                    'mode'      => $counterOrder
-                    );
-
-                $href = $this->view->url($sortParams, 'default');
-                $header[$columnName] = "<a class=\"" . self::CSS_ID . "-sort-link $class\" href=\"$href\">$name</a>";
-            } else {
-                $header[$columnName] = $name;
-            }
-        }
-
-        // Enable paginator if needed
-        if (isset($this->options['pagination'])) {
-            $pageNumber = $this->_getParam('page');
-            $paginator = Zend_Paginator::factory($select);
-
-            $paginator->setCurrentPageNumber($pageNumber);
-            $itemPerPage = isset($this->options['pagination']['itemsPerPage']) ?
-                            $this->options['pagination']['itemsPerPage'] : 10;
-            $paginator->setItemCountPerPage($itemPerPage);
-
-            $items = $paginator->getItemsByPage($pageNumber);
-
-            if ($items instanceof Zend_Db_Table_Rowset) {
-                $items = $items->toArray();
-            } elseif ($items instanceof ArrayIterator) {
-                $items = $items->getArrayCopy();
-            }
-
-            $entries = $this->prepareList($items);
-            $this->view->paginator = $paginator;
-            $this->view->pageNumber = $pageNumber;
-        } else {
-            $entries = $this->prepareList($select->query()->fetchAll());
-        }
-
-        $this->view->headers        = $header;
-        $this->view->entries        = $entries;
-        $this->view->readonly       = $this->options['readonly'];
         $this->view->searchActive   = $searchActive;
         $this->view->searchForm     = $searchForm;
         $this->view->primaryKey     = $pks;
@@ -536,6 +480,309 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
     public function listAction()
     {
         $this->_forward('index');
+    }
+
+    /**
+     * Handle custom Zend_Db_Select-based queries.
+     */
+    protected function smartQuery($select, $fields = array(), $options = null)
+    {
+        // Check arguments.
+        if (!$select instanceof Zend_Db_Select) {
+            throw new Zend_Controller_Exception('Custom select method requires an instance of Zend_Db_Select.');
+        }
+
+        $this->fields = $fields;
+        if (is_array($options)) {
+            $this->options = array_merge($this->options, $options);
+        }
+
+        if (isset($this->options['translator']) && !($this->options['translator'] instanceof Zend_Translate)) {
+            throw new Zend_Controller_Exception("'translator' option must be instance of Zend_Translate.");
+        }
+
+        $searchFields = $sortingFields  = array();
+        $defSortField   = null;
+        $searchForm     = null;
+        $searchActive   = false;
+
+        // Process primary/related table fields.
+        $defaultOrder = 1;
+        foreach ($this->fields as $columnName => $columnDetails) {
+            $defColumnName = $columnName;
+
+            if (strpos($columnName, '.')) {
+                list($tableName, $columnName) = explode('.', $columnName);
+                $this->fields[$defColumnName]['sqlName'] ="$tableName.$columnName";
+            }
+            else {
+                $this->fields[$defColumnName]['sqlName'] ="$columnName";
+            }
+
+            // Prepare search form fields.
+            if (!empty($this->fields[$defColumnName]['searchable'])) {
+                $searchFields[$defColumnName] = $columnDetails;
+            }
+
+            // Prepare sortable fields.
+            if (!empty($this->fields[$defColumnName]['sortable'])) {
+                $sortingFields[$tableName] = $columnName;
+            }
+
+            $this->fields[$defColumnName]['order'] = $defaultOrder++;
+
+            $defSortField = empty($defSortField) ?
+                            (empty($this->fields[$defColumnName]['sortBy']) ? null : $defColumnName)
+                            : $defSortField;
+        }
+
+        /**
+         * Apply search filter, storing search criteria in session.
+         */
+        $searchActive = false;
+        if (count($searchFields)) {
+            // Create unique search session variable.
+            // @todo: test if it is unique in ALL cases
+            $nsName = join('_', array_keys($searchFields));
+            $searchParams   = new Zend_Session_Namespace($nsName);
+            $searchForm     = $this->buildQuerySearchForm($searchFields);
+
+            if ($this->getRequest()->isPost() && $searchForm->isValid($this->_getAllParams())) {
+                if (isset($_POST['reset'])) {
+                    $filterFields = array();
+                } else {
+                    $filterFields = $searchForm->getValues();
+                }
+                $searchParams->search   = $filterFields;
+            } else {
+                $filterFields = isset($searchParams->search) ? $searchParams->search : array();
+            }
+            $searchForm->populate($filterFields);
+
+            foreach ($filterFields as $field => $value) {
+              if ($value || is_numeric($value)) {
+                // Treat date fields specially.
+                $dateFrom = $dateTo = false;
+                if (strpos($field, self::CSS_ID . '_from')) {
+                    $field = str_replace('_' . self::CSS_ID . '_from', '', $field);
+                    $dateFrom = true;
+                } elseif (strpos($field, self::CSS_ID . '_to')) {
+                    $field = str_replace('_' . self::CSS_ID . '_to', '', $field);
+                    $dateTo = true;
+                }
+
+                // Column name was normalized, need to find it.
+                $fieldDefs = array_keys($this->fields);
+                $fieldFound = false;
+                foreach ($fieldDefs as $fieldName) {
+                    if (strpos($fieldName, '.') !== false && str_replace('.', '', $fieldName) == $field) {
+                        $field = $fieldName;
+                        $fieldFound = true;
+                        break;
+                    }
+                }
+
+                // The submitted form value is not from field definitions, skip it.
+                if (!$fieldFound) {
+                    continue;
+                }
+
+                // Date is a period, need to handle both start and end date.
+                if (in_array($this->fields[$field]['dataType'], array('date', 'datetime'))) {
+                    if (!empty($dateFrom)) {
+                        $select->where("{$this->fields[$field]['sqlName']} >= ?", $value);
+                    }
+                    if (!empty($dateTo)) {
+                        $select->where("{$this->fields[$field]['sqlName']} <= ?", $value);
+                    }
+                } elseif ($this->fields[$field]['dataType'] == 'text') {
+                    $select->where("{$this->fields[$field]['sqlName']} LIKE ?", $value);
+                } else {
+                    $select->where("{$this->fields[$field]['sqlName']} = ?", $value);
+                }
+
+                $searchActive = true;
+              }
+          }
+        }
+
+        /**
+         * Handle sorting by modifying SQL and building header sorting links.
+         */
+        $sortField  = $this->_getParam('orderby');
+        $sortMode   = $this->_getParam('mode') == 'desc' ? 'desc' : 'asc';
+        if (!$sortField && $defSortField) {
+            $sortField  = $defSortField;
+            $sortMode   = $this->fields[$sortField]['sortBy'] == 'desc' ? 'desc' : 'asc';
+        }
+        if ($sortField) {
+            $select->order("{$this->fields[$sortField]['sqlName']} $sortMode");
+        }
+
+        // Sort fields for listing.
+        $this->fields = array_filter($this->fields, array($this, 'removeHiddenListItems'));
+        uasort($this->fields, array($this, 'sortByListOrder'));
+
+        $this->prepareHeader($sortField, $sortMode);
+
+        $this->prepareList($select);
+
+        $this->view->searchActive   = $searchActive;
+        $this->view->searchForm     = $searchForm;
+
+        $this->view->canCreate      = !in_array(self::ACTION_CREATE, $this->options['disabledActions']);
+        $this->view->canUpdate      = !in_array(self::ACTION_UPDATE, $this->options['disabledActions']);
+        $this->view->canDelete      = !in_array(self::ACTION_DELETE, $this->options['disabledActions']);
+
+        // Prepare other view variables.
+        $this->view->action       = $this->getRequest()->getActionName();
+        $this->view->module       = $this->getRequest()->getModuleName();
+        $this->view->controller   = $this->getRequest()->getControllerName();
+        $this->view->actionParams = $this->options['actionParams'];
+
+        $this->view->headLink()->appendStylesheet($this->view->baseUrl('/css/zstyles.css'), 'screen, projection');
+    }
+
+    /**
+     * Initializes custom select query search form.
+     * @param array $fields list of searchable fields.
+     * @return Zend_Form instance of form object
+     */
+    private function buildQuerySearchForm(array $fields)
+    {
+        $datePickerFields   = array();
+        $form               = array();
+
+        foreach ($fields as $columnName => $columnDetails) {
+            if (empty($columnDetails['dataType'])) {
+                throw new Zend_Controller_Exception("No type definition provided for '$columnName'.");
+            }
+
+            $defColumnName = $columnName;
+            // Column name must be normalized
+            // (Zend_Form_Element::filterName does it anyway).
+            $columnName = str_replace('.', '', $columnName);
+            $dataType = $columnDetails['dataType'];
+            $fieldType = !empty($columnDetails['fieldType']) ? $columnDetails['fieldType'] : null;
+
+            $matches = array();
+            if (isset($columnDetails['searchOptions']) && is_array($columnDetails['searchOptions'])) {
+                $options = $columnDetails['searchOptions'];
+                $options[''] = 'any';
+                ksort($options);
+
+                if ($fieldType == 'radio') {
+                    $elementType = 'radio';
+                } else {
+                    $elementType = 'select';
+                }
+
+                $form['elements'][$columnName] = array(
+                    $elementType,
+                    array(
+                        'multiOptions' => $options,
+                        'label' => $this->getColumnTitle($defColumnName),
+                        'class' => self::CSS_ID . '-search-' . $elementType,
+                        'value' => ''
+                    )
+                );
+            } elseif (in_array($dataType, array('date', 'datetime'))) {
+                $form['elements'][$columnName . '_' . self::CSS_ID . '_from'] =
+                    array(
+                        'text', array(
+                            'label'         => $this->getColumnTitle($defColumnName) . ' from',
+                            'class'         => self::CSS_ID . '-search-' . $fieldType,
+                        )
+                    );
+
+                $form['elements'][$columnName . '_' . self::CSS_ID . '_to'] =
+                    array(
+                        'text', array(
+                            'label' => 'to',
+                            'class' => self::CSS_ID . '-search-' . $fieldType,
+                        )
+                    );
+
+                if ($fieldType == 'jsPicker') {
+                    $datePickerFields[] = $columnName . '_' . self::CSS_ID . '_from';
+                    $datePickerFields[] = $columnName . '_' . self::CSS_ID . '_to';
+                }
+            } elseif ($dataType == 'text') {
+                    $length     = isset($columnDetails['size']) ? $columnDetails['size'] : '';
+                    $maxlength  = isset($columnDetails['maxlength']) ? $columnDetails['maxlength'] : '';
+
+                    $form['elements'][$columnName] = array(
+                        'text',
+                        array(
+                            'class'     => self::CSS_ID . '-search-text',
+                            'label'     => $this->getColumnTitle($defColumnName),
+                            'size'      => $length,
+                            'maxlength' => $maxlength,
+                        )
+                    );
+            } elseif ($dataType == 'integer') {
+                if ($fieldType == 'checkbox') {
+                    // By default integer values are displayed as text fields
+                    $form['elements'][$columnName] = array(
+                        'checkbox',
+                        array(
+                            'class' => self::CSS_ID . '-search-radio',
+                            'label' => $this->getColumnTitle($defColumnName),
+                        )
+                    );
+                } else {
+                    $form['elements'][$columnName] = array(
+                        'text',
+                        array(
+                            'class' => self::CSS_ID . '-search-text',
+                            'label' => $this->getColumnTitle($defColumnName),
+                        )
+                    );
+                }
+            } else {
+                throw new Zend_Controller_Exception("Fields of type '$dataType' are not searchable.");
+            }
+
+            // Allow to search empty records
+//            if (isset($this->fields[$columnName]['searchEmpty'])) {
+//                $form['elements']["{$columnName}searchempty"] = array(
+//                        'checkbox',
+//                        array(
+//                            'class' => self::CSS_ID . '-search-radio',
+//                            'label' => $this->getColumnTitle($columnName) . _(' is empty'),
+//                        )
+//                    );
+//            }
+        }
+
+        $form['elements']['submit'] = array(
+            'submit',
+            array(
+                'ignore'   => true,
+                'class' => self::CSS_ID . '-btn-search',
+                'label' => 'Search',
+            )
+        );
+
+        $form['elements']['reset'] = array(
+            'submit',
+            array(
+                'ignore'   => true,
+                'class' => self::CSS_ID . '-btn-reset',
+                'label' => 'Reset',
+                'onclick' => 'ssfResetForm(this.form);'
+            ),
+        );
+
+        // Load JS files
+        if (count($datePickerFields)) {
+            $this->loadDatePicker($datePickerFields);
+        }
+        $this->view->headScript()->appendFile($this->view->baseUrl("/js/zsutils.js"));
+
+        $form['action'] = $this->view->url();
+
+        return $this->prepareSearchForm($form);
     }
 
     /**
@@ -1527,28 +1774,85 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
         }
     }
 
+    private function prepareHeader($sortField, $sortMode) {
+        $header = array();
+        foreach ($this->fields as $columnName => $columnDetails) {
+            if (!empty($columnDetails['hide']) && ($columnDetails['hide'] === true
+                 || $columnDetails['hide'] == 'list')) {
+                 continue;
+            }
+
+            $name = $this->translate($this->getColumnTitle($columnName));
+            // Generate sorting link
+            if (!empty($this->fields[$columnName]['sortable'])) {
+
+                $currentMode = ($sortField == $columnName ? $sortMode : '');
+
+                if ($currentMode == 'asc') {
+                    $counterOrder   = 'desc';
+                    $class          = self::CSS_ID . '-sort-desc';
+                } elseif ($currentMode == 'desc') {
+                    $counterOrder   = 'asc';
+                    $class          = self::CSS_ID . '-sort-asc';
+                } else {
+                    $counterOrder   = 'asc';
+                    $class          = '';
+                }
+
+                $sortParams = array(
+                    'orderby'   => $columnName,
+                    'mode'      => $counterOrder
+                    );
+
+                $href = $this->view->url($sortParams, 'default');
+                $header[$columnName] = "<a class=\"" . self::CSS_ID . "-sort-link $class\" href=\"$href\">$name</a>";
+            } else {
+                $header[$columnName] = $name;
+            }
+        }
+
+        $this->view->headers = $header;
+        return $header;
+    }
     /**
      * Prepares the list of records. Optionally applies field listing modifiers.
      *
      * @param Array $entries entries to be displayed
      * @return Array $list resulting list of entries
      */
-    private function prepareList(array $entries)
+    private function prepareList($select)
     {
-        $info = $this->getMetadata();
-        $list = array();
+        // Enable paginator if needed
+        if (!empty($this->options['pagination'])) {
+            $pageNumber = $this->_getParam('page');
+            $paginator = Zend_Paginator::factory($select);
 
-        foreach ($entries as $entry) {
-            $keys = array();
+            $paginator->setCurrentPageNumber($pageNumber);
+            $itemPerPage = isset($this->options['pagination']['itemsPerPage']) ?
+                            $this->options['pagination']['itemsPerPage'] : self::ITEMS_PER_PAGE;
+            $paginator->setItemCountPerPage($itemPerPage);
 
-            // Convert to array if object.
-            if (is_object($entry)) {
-                $entry = (array)$entry;
+            $items = $paginator->getItemsByPage($pageNumber);
+
+            if ($items instanceof Zend_Db_Table_Rowset) {
+                $items = $items->toArray();
+            } elseif ($items instanceof ArrayIterator) {
+                $items = $items->getArrayCopy();
             }
 
-            // Fetch PK(s).
-            foreach ($info['primary'] as $pk) {
-                $keys[$pk] = $entry[$pk];
+            $this->view->paginator = $paginator;
+            $this->view->pageNumber = $pageNumber;
+        } else {
+            $items = $select->query()->fetchAll();
+        }
+
+        $info = $this->getMetadata();
+        $itemList = array();
+
+        foreach ($items as $item) {
+            // Convert to array if object.
+            if (is_object($item)) {
+                $item = (array)$item;
             }
 
             foreach ($this->fields as $columnName => $columnDetails) {
@@ -1558,12 +1862,20 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
                      continue;
                 }
 
-                list($table, $column) = explode('.', $columnDetails['sqlName']);
-                // If alias exist or column not found by its SQL primary name, let's try alias.
-                if (strpos($columnName, '.') || empty($entry[$column])) {
+                // Table fields have fully-qualified SQL name.
+                if (strpos($columnDetails['sqlName'], '.')) {
+                    list($table, $column) = explode('.', $columnDetails['sqlName']);
+                    // If alias exist or column not found by its SQL primary name, let's try alias.
+                    if (empty($item[$column]) && !empty($item[$columnName])) {
+                        $column = $columnName;
+                    }
+                }
+                // Computed fields have alias only.
+                else {
                     $column = $columnName;
                 }
-                $value  = $entry[$column];
+
+                $value  = $item[$column];
 
                 // Call list view modifier for specific column if set
                 if (isset($columnDetails['listModifier'])) {
@@ -1577,11 +1889,20 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
                 $row[$columnName] = $value;
             }
 
-            $row['pkParams'] = $keys;
-            $list[] = $row;
+            // Fetch PK(s).
+            if (!is_null($info)) {
+                $keys = array();
+                foreach ($info['primary'] as $pk) {
+                    $keys[$pk] = $item[$pk];
+                }
+                $row['pkParams'] = $keys;
+            }
+
+            $itemList[] = $row;
         }
 
-        return $list;
+        $this->view->items = $itemList;
+        return $itemList;
     }
 
     /**
