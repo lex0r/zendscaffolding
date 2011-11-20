@@ -129,6 +129,23 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
     );
 
     /**
+     * Different data type definitions and their mapping to
+     * a more generic internal data type.
+     * @var Array
+     */
+    private $dataTypes = array(
+        'numeric' => array(
+            'tinyint', 'bool', 'smallint', 'int',
+            'numeric', 'int4', 'integer', 'mediumint', 'bigint',
+            'decimal', 'float', 'double'
+        ),
+        'text' => array(
+            'char', 'bpchar', 'varchar',
+            'smalltext', 'text', 'mediumtext', 'longtext'
+        ),
+        'time' => array('date', 'datetime', 'timestamp')
+    );
+    /**
      * Scaffolding field definitions.
      * @var Array
      */
@@ -1153,9 +1170,13 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
             $textFieldOptions   = array();
             $textFieldType      = null;
 
-            if (isset($this->fields[$columnName]['type'])) {
-                switch ($this->fields[$columnName]['type']) {
-                    case 'textarea': case 'richtextarea':
+            if (!empty($this->fields[$columnName]['fieldType'])) {
+                switch ($this->fields[$columnName]['fieldType']) {
+                    case 'textarea':
+                        $textFieldType  = 'textarea';
+                        break;
+
+                    case 'richtextarea':
                         $textFieldType  = 'textarea';
                         $rteFields[]    = $columnName;
                         break;
@@ -1164,12 +1185,16 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
                         $textFieldType = 'text';
                         break;
 
-                    case 'datepicker':
+                    case 'password':
+                        $textFieldType = 'password';
+                        break;
+
+                    case 'jsPicker':
                         $datePickerFields[] = $columnName;
                         break;
                 }
 
-                if ($textFieldType == 'text') {
+                if (in_array($textFieldType, array('text', 'password'))) {
                     if (isset($this->fields[$columnName]['size'])) {
                         $textFieldOptions['size'] = $this->fields[$columnName]['size'];
                     }
@@ -1188,100 +1213,66 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
                 }
             }
 
-            switch ($dataType) {
+            if (in_array($dataType, array('enum', 'options'))) {
                 // Build radio/select element from enum/options
-                case 'enum': case 'options':
-                    // Try to parse enum definition
-                    if (isset($enumDefinition)) {
-                        preg_match_all('/\'(.*?)\'/', $enumDefinition, $matches);
+                // Try to parse enum definition
+                if (isset($enumDefinition)) {
+                    preg_match_all('/\'(.*?)\'/', $enumDefinition, $matches);
 
-                        $options = array();
-                        foreach ($matches[1] as $match) {
-                            $options[$match] = ucfirst($match);
-                        }
-                    } else {
-                        // Not enum - use options provided
-                        $options = $this->fields[$columnName]['options'];
+                    $options = array();
+                    foreach ($matches[1] as $match) {
+                        $options[$match] = ucfirst($match);
                     }
+                } else {
+                    // Not enum - use options provided
+                    $options = $this->fields[$columnName]['options'];
+                }
 
-                    if (isset($this->fields[$columnName]['type']) && $this->fields[$columnName]['type'] == 'radio') {
-                        $elementType = 'radio';
-                    } else {
-                        $elementType = 'select';
-                    }
+                if (!empty($this->fields[$columnName]['fieldType']) && $this->fields[$columnName]['fieldType'] == 'radio') {
+                    $elementType = 'radio';
+                } else {
+                    $elementType = 'select';
+                }
 
-                    $form['elements'][$columnName] = array(
-                        $elementType,
-                        array_merge(array('multiOptions'  => $options), $elementOptions)
-                    );
-
-                    break;
-
+                $form['elements'][$columnName] = array(
+                    $elementType,
+                    array_merge(array('multiOptions'  => $options), $elementOptions)
+                );
+            } elseif (in_array($dataType, $this->dataTypes['numeric'])) {
                 // Generate fields for numerics.
-                case 'tinyint':
-                case 'bool':
-                case 'smallint':
-                case 'int':
-                case 'integer':
-                case 'mediumint':
-                case 'bigint':
-
-                    if (isset($this->fields[$columnName]['type'])
-                            && $this->fields[$columnName]['type'] == 'checkbox') {
-                        $form['elements'][$columnName] = array(
-                            'checkbox',
-                            $elementOptions
-                        );
-                    } else {
-                        $form['elements'][$columnName] = array(
-                            'text',
-                            array_merge(array('size' => 10), $elementOptions)
-                        );
-                    }
-                    break;
-
-                case 'decimal':
-                case 'float':
-                case 'double':
+                if (!empty($this->fields[$columnName]['fieldType'])
+                        && $this->fields[$columnName]['fieldType'] == 'checkbox') {
                     $form['elements'][$columnName] = array(
-                        'text',
+                        'checkbox',
                         $elementOptions
                     );
-                    break;
-
+                } else {
+                    $form['elements'][$columnName] = array(
+                        'text',
+                        array_merge(array('size' => 10), $elementOptions)
+                    );
+                }
+            } elseif (in_array($dataType, $this->dataTypes['text'])) {
                 // Generate single-line input or multiline input for string fields.
-                case 'char':
-                case 'varchar':
-                case 'smalltext':
+                if (in_array($dataType, array('char', 'bpchar', 'varchar', 'smalltext'))) {
                     $form['elements'][$columnName] = array(
                         $textFieldType ? $textFieldType : 'text',
                         array_merge($elementOptions, $textFieldOptions)
                     );
-                    break;
-
-                case 'text':
-                case 'mediumtext':
-                case 'longtext':
+                } else {
                     $form['elements'][$columnName] = array(
                         $textFieldType ? $textFieldType : 'textarea',
                         array_merge($elementOptions, $textFieldOptions)
                     );
-                    break;
-
-                // Date/time fields.
-                case 'date':
-                case 'time':
-                case 'datetime':
-                case 'timestamp':
-                    $form['elements'][$columnName] = array(
-                        'text',
-                        $elementOptions
-                    );
-                    break;
-
-                default:
-                    throw new Zend_Controller_Exception("Unsupported data type '$dataType' encountered, scaffolding is not possible.");
-                    break;
+                }
+            } elseif (in_array($dataType, $this->dataTypes['time'])) {
+                $form['elements'][$columnName] = array(
+                    'text',
+                    $elementOptions
+                );
+            }
+            else {
+                throw new Zend_Controller_Exception("Unsupported data type '$dataType' encountered, scaffolding is not possible.");
             }
 
             // Save custom attributes
@@ -1343,7 +1334,7 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
                         }
                     }
 
-                    if (isset($columnDetails['type']) && $columnDetails['type'] == 'multicheckbox') {
+                    if (!empty($columnDetails['fieldType']) && $columnDetails['fieldType'] == 'multicheckbox') {
                         $elementType = 'MultiCheckbox';
                     } else {
                         $elementType = 'Multiselect';
@@ -1437,12 +1428,13 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
             $defColumnName = $columnName;
             if (isset($metadata[$columnName])) {
                 $dataType = strtolower($metadata[$columnName]['DATA_TYPE']);
-                $fieldType = isset($columnDetails['type']) ? $columnDetails['type'] : '';
+                $fieldType = !empty($columnDetails['fieldType']) ? $columnDetails['fieldType'] : '';
             } else {
                 /**
                  * Check if the column belongs to a related table.
                  * @todo: support for n-n relations.
                  */
+                $fieldType = '';
                 $fullColumnName = explode('.', $columnName);
                 if (count($fullColumnName) == 2) {
                     // Column is a FK.
@@ -1457,10 +1449,10 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
                         $relatedTableMetadata = $relatedTableInfo['metadata'];
 
                         $dataType = strtolower($relatedTableMetadata[$fullColumnName[1]]['DATA_TYPE']);
-                        $fieldType = isset($columnDetails['type']) ? $columnDetails['type'] : '';
+                        $fieldType = !empty($columnDetails['fieldType']) ? $columnDetails['fieldType'] : '';
 
                         // Save data type for further usage.
-                        $this->fields[$columnName]['type'] = $dataType;
+                        $this->fields[$columnName]['fieldType'] = $dataType;
                     }
 
                     // Column name must be normalized
@@ -1488,7 +1480,7 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
                 $options[''] = 'any';
                 ksort($options);
 
-                if (isset($columnDetails['type']) && $columnDetails['type'] == 'radio') {
+                if (!empty($columnDetails['fieldType']) && $columnDetails['fieldType'] == 'radio') {
                     $elementType = 'radio';
                 } else {
                     $elementType = 'select';
@@ -1503,12 +1495,12 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
                         'value' => ''
                     )
                 );
-            } elseif (in_array($dataType, array('date', 'datetime', 'timestamp')) || $fieldType == 'date') {
+            } elseif (in_array($dataType, $this->dataTypes['time'])) {
                 $form['elements'][$columnName . '_' . self::CSS_ID . '_from'] =
                     array(
                         'text', array(
-                            'label'         => $this->getColumnTitle($defColumnName) . ' from',
-                            'class'         => self::CSS_ID . '-search-' . $dataType . $fieldType,
+                            'label' => $this->getColumnTitle($defColumnName) . ' from',
+                            'class' => self::CSS_ID . '-search-' . $dataType . '-' . $fieldType,
                         )
                     );
 
@@ -1516,13 +1508,15 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
                     array(
                         'text', array(
                             'label' => 'to',
-                            'class' => self::CSS_ID . '-search-' . $dataType . $fieldType,
+                            'class' => self::CSS_ID . '-search-' . $dataType . '-' . $fieldType,
                         )
                     );
 
-                $datePickerFields[] = $columnName . '_' . self::CSS_ID . '_from';
-                $datePickerFields[] = $columnName . '_' . self::CSS_ID . '_to';
-            } elseif (in_array($dataType, array('char', 'varchar')) || $fieldType == 'text') {
+                if ($fieldType == 'jsPicker') {
+                    $datePickerFields[] = $columnName . '_' . self::CSS_ID . '_from';
+                    $datePickerFields[] = $columnName . '_' . self::CSS_ID . '_to';
+                }
+            } elseif (in_array($dataType, $this->dataTypes['text'])) {
                     $length     = isset($columnDetails['size']) ? $columnDetails['size'] : '';
                     $maxlength  = isset($columnDetails['maxlength']) ? $columnDetails['maxlength'] :
                                       isset($metadata[$columnName]['LENGTH'])
@@ -1537,7 +1531,7 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
                             'maxlength' => $maxlength,
                         )
                     );
-            } elseif (in_array($dataType, array('tinyint', 'int', 'integer', 'bool'))) {
+            } elseif (in_array($dataType, $this->dataTypes['numeric'])) {
                 // Specially handle the column if it is a foreign key
                 // and build necessary select/multicheckbox field.
                 if (!empty($this->fields[$columnName]['displayField'])) {
@@ -1572,7 +1566,8 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
                 }
                 else {
                     $form['elements'][$columnName] = array(
-                            'checkbox',
+                            !empty($columnDetails['fieldType']) && $columnDetails['fieldType'] == 'checkbox'
+                            ? 'checkbox' : 'text',
                             array(
                                 'class' => self::CSS_ID . '-search-radio',
                                 'label' => $this->getColumnTitle($columnName),
@@ -1584,15 +1579,16 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
             }
 
             // Allow to search empty records
-            if (isset($this->fields[$columnName]['searchEmpty'])) {
-                $form['elements']["{$columnName}searchempty"] = array(
-                        'checkbox',
-                        array(
-                            'class' => self::CSS_ID . '-search-radio',
-                            'label' => $this->getColumnTitle($columnName) . _(' is empty'),
-                        )
-                    );
-            }
+            // @todo: implement search by empty values
+//            if (isset($this->fields[$columnName]['searchEmpty'])) {
+//                $form['elements']["{$columnName}searchempty"] = array(
+//                        'checkbox',
+//                        array(
+//                            'class' => self::CSS_ID . '-search-radio',
+//                            'label' => $this->getColumnTitle($columnName) . _(' is empty'),
+//                        )
+//                    );
+//            }
         }
 
         $form['elements']['submit'] = array(
