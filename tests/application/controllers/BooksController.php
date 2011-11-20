@@ -16,14 +16,14 @@ class BooksController extends Zend_Controller_Scaffolding
                 'editOrder' => 1,
             ),
             'description' => array(
-                'type'  => 'richtextarea',
+                'fieldType'  => 'richtextarea',
                 'rows'  => 5,
                 'cols'  => 40,
                 'listOrder' => 2,
                 'editOrder' => 2,
             ),
             'available' => array(
-                'type' => 'checkbox',
+                'fieldType' => 'checkbox',
                 'searchable' => true,
                 'listOrder' => 5,
                 'editOrder' => 5,

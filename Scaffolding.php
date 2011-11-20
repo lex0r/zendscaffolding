@@ -308,11 +308,12 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
                             throw new Zend_Controller_Exception('Zend_Controller_Scaffolding requires a Zend_Db_Table_Abstract as model providing class.');
                         }
 
-                        // Do not call me
                         $relatedTableMetadata = $dependentTable->info();
                         $references = $relatedTableMetadata['referenceMap'];
-                        // Reference with such name may not be defined...
-                        if (!isset($references[$refName])) {
+                        // Reference with such name may not be defined
+                        // or column may not exist (the last means n-n table)
+                        if (!isset($references[$refName]) ||
+                                !in_array($refDisplayField, $relatedTableMetadata['cols'])) {
                             continue;
                         }
 
@@ -417,7 +418,7 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
                   // Search all other native fields.
                   if (isset($tableInfo['metadata'][$field])) {
                       $dataType = strtolower($tableInfo['metadata'][$field]['DATA_TYPE']);
-                      $fieldType = isset($this->fields[$field]['type']) ? $this->fields[$field]['type'] : '';
+                      $fieldType = !empty($this->fields[$field]['fieldType']) ? $this->fields[$field]['fieldType'] : '';
                       $tableName = $tableInfo['name'];
                   } else {
                       // Search by related table field.
@@ -437,11 +438,11 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
                           continue;
                       }
 
-                      $dataType = $this->fields[$field]['type'];
+                      $dataType = $this->fields[$field]['fieldType'];
                       list($tableName, $field) = explode('.', $this->fields[$field]['sqlName']);
                   }
 
-                  if (in_array($dataType, array('char', 'varchar', 'text')) || $fieldType == 'text') {
+                  if (in_array($dataType, $this->dataTypes['text']) || $fieldType == 'text') {
                       $select->where("$tableName.$field LIKE ?", $value);
                   } else {
                       $select->where("$tableName.$field = ?", $value);

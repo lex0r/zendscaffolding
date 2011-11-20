@@ -19,7 +19,7 @@ class ReadersController extends Zend_Controller_Scaffolding
             ),
             'created' => array(
                 'searchable'=> true,
-                'type'      => 'datepicker',
+                'fieldType'      => 'jsPicker',
                 'hide'      => 'edit'
             ),
             'updated' => array(
