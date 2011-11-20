@@ -3,32 +3,71 @@
 class ReadersController extends Zend_Controller_Scaffolding
 {
 
-    public function init()
-    {
+    public function init() {
+        parent::init();
+
         $fields = array(
             'name' => array(
-                'title'     => 'First & last name',
+                // The title of the column
+                'title'     => 'Name',
+                // We want to be able to search by the reader's name
                 'searchable'=> true,
+                // We want to be able to sort by name
+                'sortable'=> true,
+                // The field is first in the list.
+                'listOrder' => 1
             ),
             'category' => array(
+                // We don't want to show the ID in the list.
                 'hide'          => 'list',
+                // Instead we want to show it as relevant
+                // text field from a related table, defined as key of the next field.
+                // Note: 'Category' is the name of reference rule defined in
+                // current model class (Application_Model_Readers) inside _referenceMap variable.
                 'displayField'  => 'Category.name'
             ),
+            // The field from related table, that will replace meaningless ID.
             'Category.name' => array(
                 'title' => 'Category',
+                'listOrder' => 2,
+                'sortable' => true
+            ),
+            // A field from dependent table that we also want to show.
+            // Note: 'Reader' is the name of the reference rule in the dependent
+            // table's model, that points to the current model class,
+            // 'balance' is the field we want to show, that belongs to dependent
+            // table, NOT current table (i.e. not 'readers').
+            // Important: this field is not intended for changes from the application
+            // and is just for demo purposes.
+            'Reader.balance' => array(
+                'title' => 'Balance',
+                'listOrder' => 3
             ),
             'created' => array(
                 'searchable'=> true,
-                'fieldType'      => 'jsPicker',
-                'hide'      => 'edit'
+                // This field will be transmitted with other
+                // fields of type 'jsPicker' to loadDatePicker method.
+                // This allows to create a JS widget (calendar for date,
+                // but any other if needed).
+                'fieldType' => 'jsPicker',
+                // We don't want to allow edit of this field
+                'hide'      => 'edit',
+                'listOrder' => 5
             ),
             'updated' => array(
                 'hide'  => 'edit',
-                'listOrder' => 2
+                'listOrder' => 4
             ),
+            // This field definition makes sense only for edit form
+            // and allows to show list of assigned books through a
+            // many-to-many table readers_books.
+            // Note: 'Books' stands for the reference rule defined in the dependent table
+            // Application_Model_ReadersBooks that points to books table, while
+            // 'title' is the textual name of the related entity (book) that
+            // substitutes a meaningless ID.
             'Books.title' => array(
                 'title' => 'Assigned books',
-            )
+            ),
         );
 
         $this->scaffold(new Application_Model_Readers(), $fields, array('csrfProtected' => false, 'entityTitle' => 'reader', 'disabledActions' => array(self::ACTION_DELETE)));

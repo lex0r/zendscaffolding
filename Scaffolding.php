@@ -1826,18 +1826,14 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
             }
 
             foreach ($this->fields as $columnName => $columnDetails) {
-
-                if (!empty($columnDetails['hide']) && ($columnDetails['hide'] === true
-                     || $columnDetails['hide'] == 'list')) {
-                     continue;
-                }
-
                 // Table fields have fully-qualified SQL name.
                 if (strpos($columnDetails['sqlName'], '.')) {
-                    list($table, $column) = explode('.', $columnDetails['sqlName']);
-                    // If alias exist or column not found by its SQL primary name, let's try alias.
-                    if (empty($item[$column]) && !empty($item[$columnName])) {
+                    // If alias exist let's try alias.
+                    // @todo: or column not found by its SQL primary name,
+                    if (!empty($item[$columnName])) {
                         $column = $columnName;
+                    } else {
+                        list($table, $column) = explode('.', $columnDetails['sqlName']);
                     }
                 }
                 // Computed fields have alias only.
@@ -1845,7 +1841,8 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
                     $column = $columnName;
                 }
 
-                $value  = $item[$column];
+                // null values may be returned.
+                $value  = !empty($item[$column]) ? $item[$column] : null;
 
                 // Call list view modifier for specific column if set
                 if (isset($columnDetails['listModifier'])) {
@@ -1858,7 +1855,6 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
 
                 $row[$columnName] = $value;
             }
-
             // Fetch PK(s).
             if (!is_null($info)) {
                 $keys = array();
