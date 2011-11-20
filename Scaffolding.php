@@ -511,6 +511,23 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
             throw new Zend_Controller_Exception("'translator' option must be instance of Zend_Translate.");
         }
 
+        // Do not override view script path if the action requested is not
+        // one of the standard scaffolding actions
+        $action = $this->getRequest()->getActionName();
+        $scaffActions   = array(self::ACTION_LIST, self::ACTION_INDEX,
+                              self::ACTION_CREATE, self::ACTION_UPDATE,
+                              self::ACTION_DELETE);
+        $indexActionScript = null;
+        if (!empty($this->options['useIndexAction'])) {
+            $scaffActions[]     = $action;
+            $indexActionScript  = 'index';
+        }
+        if (in_array($action, $scaffActions)) {
+            $this->getHelper('ViewRenderer')
+                 ->setViewScriptPathSpec(
+                        sprintf('%s/' . ($indexActionScript ? $indexActionScript : ':action') . '.:suffix', $this->options['viewFolder']));
+        }
+
         $searchFields = $sortingFields  = array();
         $defSortField   = null;
         $searchForm     = null;
@@ -696,7 +713,7 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
                         'value' => ''
                     )
                 );
-            } elseif (in_array($dataType, array('date', 'datetime'))) {
+            } elseif (in_array($dataType, $this->dataTypes['time'])) {
                 $form['elements'][$columnName . '_' . self::CSS_ID . '_from'] =
                     array(
                         'text', array(
@@ -717,7 +734,7 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
                     $datePickerFields[] = $columnName . '_' . self::CSS_ID . '_from';
                     $datePickerFields[] = $columnName . '_' . self::CSS_ID . '_to';
                 }
-            } elseif ($dataType == 'text') {
+            } elseif (in_array($dataType, $this->dataTypes['text'])) {
                     $length     = isset($columnDetails['size']) ? $columnDetails['size'] : '';
                     $maxlength  = isset($columnDetails['maxlength']) ? $columnDetails['maxlength'] : '';
 
@@ -730,7 +747,7 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
                             'maxlength' => $maxlength,
                         )
                     );
-            } elseif ($dataType == 'integer') {
+            } elseif (in_array($dataType, $this->dataTypes['numeric'])) {
                 if ($fieldType == 'checkbox') {
                     // By default integer values are displayed as text fields
                     $form['elements'][$columnName] = array(

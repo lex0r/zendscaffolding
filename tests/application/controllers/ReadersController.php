@@ -73,62 +73,36 @@ class ReadersController extends Zend_Controller_Scaffolding
         $this->scaffold(new Application_Model_Readers(), $fields, array('csrfProtected' => false, 'entityTitle' => 'reader', 'disabledActions' => array(self::ACTION_DELETE)));
     }
 
-    /*
-    public function indexAction() {
+    public function smartqueryAction() {
         $fields = array(
-            'id' => array(
-                'skip'      => true,
-                'pk'        => true
-            ),
-            'name' => array(
-                'title'     => 'First & last name',
-                'type'      => 'text',
+            'r.name' => array(
+                'title'     => 'Name',
+                'dataType'  => 'varchar',
                 'searchable'=> true,
             ),
-            'age' => array(
+            'r.age' => array(
                 'title' => 'Age',
+                'dataType' => 'int'
             ),
             'books' => array(
-                'title' => 'Books assigned',
-            ),
-            'created' => array(
-                'searchable'=> true,
-                'type'      => 'datepicker',
-                'skip'  => 'edit',
-            ),
-            'updated' => array(
-                'skip' => 'edit'
-            ),
-            'assignBooks' => array(
-                'title'         => 'Assigned books',
-                'dependentTable'=> new Application_Model_ReadersBooks(),
-                'asTextColumn'  => 'title',
-                'skip'  => 'list'
+                'title'    => 'Assigned books',
+                'dataType' => 'int'
             )
         );
 
         $opts = array(
             'csrfProtected'     => false,
             'entityTitle'       => 'reader',
+            'useIndexAction'    => true,
             'disabledActions'   => array(self::ACTION_DELETE));
 
         $select = Zend_Db_Table::getDefaultAdapter()->select();
         $select->from(array('r' => 'readers'),
-                        array(
-                            'id' => 'r.id',
-                            'name' => 'r.name',
-                            'age' => 'r.age',
-                            'books' => new Zend_Db_Expr('COUNT(rb.reader_id)'),
-                            'created' => 'r.created',
-                            'updated' => 'r.updated'))
+                        array('id', 'name', 'age', 'books' => new Zend_Db_Expr('COUNT(rb.reader_id)')))
                 ->joinLeft(array('rb' => 'readers_books'), 'r.id = rb.reader_id', null)
                 ->group('r.id');
-        $this->initScaffolding($select, $fields, $opts);
-
-        parent::indexAction();
+        $this->smartQuery($select, $fields, $opts);
     }
-     *
-     */
 
     public function loadDatePicker(array $fields) {
         $this->view->headScript()->appendScript('// Date Picker Fields: ' . join(',', $fields));
