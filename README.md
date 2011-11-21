@@ -6,7 +6,7 @@ automatically have create, update, delete and list actions
 with search, sorting and pagination. Current scaffolding implementation
 is fully based on ZF MVC stack and depends on ALL the components (models, views and certainly controllers).
 
-**Please, use 1.0-beta2 (see it under Tags).**
+**Please, use the latest beta/RC (see it under Tags).**
 
 # Features
 ## Create, update, delete records
