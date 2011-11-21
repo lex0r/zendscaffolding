@@ -70,7 +70,17 @@ class ReadersController extends Zend_Controller_Scaffolding
             ),
         );
 
-        $this->scaffold(new Application_Model_Readers(), $fields, array('csrfProtected' => false, 'entityTitle' => 'reader', 'disabledActions' => array(self::ACTION_DELETE)));
+        $opts = array(
+            'csrfProtected' => false,
+            'entityTitle' => 'reader',
+            'disabledActions' => array(self::ACTION_DELETE)
+        );
+
+        // We want to use custom view script for index action.
+        if ($this->getRequest()->getActionName() == self::ACTION_INDEX) {
+            $opts['viewFolder'] = 'readers';
+        }
+        $this->scaffold(new Application_Model_Readers(), $fields, $opts);
     }
 
     /**
@@ -79,7 +89,7 @@ class ReadersController extends Zend_Controller_Scaffolding
      */
     public function smartqueryAction() {
         $fields = array(
-            // Must respect the format <tableAlias>.<fieldName>
+            // Common table field definitions must respect the format <tableAlias>.<fieldName>
             'r.name' => array(
                 'title'     => 'Name',
                 // Needed for proper field handling.
@@ -91,6 +101,7 @@ class ReadersController extends Zend_Controller_Scaffolding
                 'title' => 'Age',
                 'dataType' => 'int'
             ),
+            // Computed fields are presented as aliases
             'books' => array(
                 'title'    => 'Assigned books',
                 'dataType' => 'int',
@@ -99,27 +110,45 @@ class ReadersController extends Zend_Controller_Scaffolding
         );
 
         $opts = array(
-            'indexAction'   => true,
-            'disabledActions'   => array(self::ACTION_DELETE)
+            'disabledActions'   => array(self::ACTION_DELETE),
+            'viewFolder' => 'readers'
         );
 
         $select = Zend_Db_Table::getDefaultAdapter()->select();
         $select->from(array('r' => 'readers'),
-                        array('id', 'name', 'age', 'books' => new Zend_Db_Expr('COUNT(rb.reader_id)')))
+                        array('id', 'name', 'age',
+                            // And here goes computed field
+                            'books' => new Zend_Db_Expr('COUNT(rb.reader_id)')))
                 ->joinLeft(array('rb' => 'readers_books'), 'r.id = rb.reader_id', null)
                 ->group('r.id');
         $this->smartQuery($select, $fields, $opts);
     }
 
+    /**
+     * Handle date fields (in this case - just for unit test purposes)
+     * @param array $fields
+     */
     public function loadDatePicker(array $fields) {
         $this->view->headScript()->appendScript('// Date Picker Fields: ' . join(',', $fields));
     }
 
+    /**
+     * Handle entity before saving it for the first time to database.
+     * @param Zend_Form $form
+     * @param array $values
+     * @return type
+     */
     public function beforeCreate(Zend_Form $form, array &$values) {
         $values['created'] = date('Y-m-d H:i:s');
         return true;
     }
 
+    /**
+     * Handle entity before saving it to database.
+     * @param Zend_Form $form
+     * @param array $values
+     * @return type
+     */
     public function beforeUpdate(Zend_Form $form, array &$values) {
         $values['updated'] = date('Y-m-d H:i:s');
         return true;
