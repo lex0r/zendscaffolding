@@ -109,6 +109,7 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
      */
     private $options = array(
         'pkEditable'        => false,
+        'indexAction'       => false,
         'viewFolder'        => 'scaffolding',
         'entityTitle'       => 'entity',
         'createEntityText'  => null,
@@ -206,22 +207,6 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
             throw new Zend_Controller_Exception("'$action' action is disabled.");
         }
 
-        // Do not override view script path if the action requested is not
-        // one of the standard scaffolding actions
-        $scaffActions   = array(self::ACTION_LIST, self::ACTION_INDEX,
-                              self::ACTION_CREATE, self::ACTION_UPDATE,
-                              self::ACTION_DELETE);
-        $indexActionScript = null;
-        if (!empty($this->options['useIndexAction'])) {
-            $scaffActions[]     = $action;
-            $indexActionScript  = 'index';
-        }
-        if (in_array($action, $scaffActions)) {
-            $this->getHelper('ViewRenderer')
-                 ->setViewScriptPathSpec(
-                        sprintf('%s/' . ($indexActionScript ? $indexActionScript : ':action') . '.:suffix', $this->options['viewFolder']));
-        }
-
         // Prepare view variables.
         $this->view->action       = $action;
         $this->view->module       = $this->getRequest()->getModuleName();
@@ -238,6 +223,27 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
         $this->view->deleteEntityText  = $this->options['deleteEntityText'];
 
         $this->view->headLink()->appendStylesheet($this->view->baseUrl('/css/zstyles.css'), 'screen, projection');
+
+        // Do not override view script path if the action requested is not
+        // one of the standard scaffolding actions
+        $scaffActions   = array(self::ACTION_LIST, self::ACTION_INDEX,
+                              self::ACTION_CREATE, self::ACTION_UPDATE,
+                              self::ACTION_DELETE);
+        $indexAction = false;
+        if (!empty($this->options['indexAction'])) {
+            $scaffActions[] = $action;
+            $indexAction = true;
+        }
+        if (in_array($action, $scaffActions)) {
+            if ($indexAction) {
+                $this->getHelper('ViewRenderer')
+                     ->setViewScriptPathSpec(sprintf('%s/index.:suffix', $this->options['viewFolder']));
+                $this->indexAction();
+            } else {
+                $this->getHelper('ViewRenderer')
+                     ->setViewScriptPathSpec(sprintf('%s/:action.:suffix', $this->options['viewFolder']));
+            }
+        }
     }
 
     /**
@@ -517,15 +523,19 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
         $scaffActions   = array(self::ACTION_LIST, self::ACTION_INDEX,
                               self::ACTION_CREATE, self::ACTION_UPDATE,
                               self::ACTION_DELETE);
-        $indexActionScript = null;
-        if (!empty($this->options['useIndexAction'])) {
-            $scaffActions[]     = $action;
-            $indexActionScript  = 'index';
+        $indexAction = false;
+        if (!empty($this->options['indexAction'])) {
+            $scaffActions[] = $action;
+            $indexAction = true;
         }
         if (in_array($action, $scaffActions)) {
-            $this->getHelper('ViewRenderer')
-                 ->setViewScriptPathSpec(
-                        sprintf('%s/' . ($indexActionScript ? $indexActionScript : ':action') . '.:suffix', $this->options['viewFolder']));
+            if ($indexAction) {
+                $this->getHelper('ViewRenderer')
+                     ->setViewScriptPathSpec(sprintf('%s/index.:suffix', $this->options['viewFolder']));
+            } else {
+                $this->getHelper('ViewRenderer')
+                     ->setViewScriptPathSpec(sprintf('%s/:action.:suffix', $this->options['viewFolder']));
+            }
         }
 
         $searchFields = $sortingFields  = array();
@@ -615,14 +625,14 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
                 }
 
                 // Date is a period, need to handle both start and end date.
-                if (in_array($this->fields[$field]['dataType'], array('date', 'datetime'))) {
+                if (in_array($this->fields[$field]['dataType'], $this->dataTypes['time'])) {
                     if (!empty($dateFrom)) {
                         $select->where("{$this->fields[$field]['sqlName']} >= ?", $value);
                     }
                     if (!empty($dateTo)) {
                         $select->where("{$this->fields[$field]['sqlName']} <= ?", $value);
                     }
-                } elseif ($this->fields[$field]['dataType'] == 'text') {
+                } elseif (in_array($this->fields[$field]['dataType'], $this->dataTypes['text'])) {
                     $select->where("{$this->fields[$field]['sqlName']} LIKE ?", $value);
                 } else {
                     $select->where("{$this->fields[$field]['sqlName']} = ?", $value);

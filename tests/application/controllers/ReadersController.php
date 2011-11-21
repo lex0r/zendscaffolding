@@ -73,12 +73,19 @@ class ReadersController extends Zend_Controller_Scaffolding
         $this->scaffold(new Application_Model_Readers(), $fields, array('csrfProtected' => false, 'entityTitle' => 'reader', 'disabledActions' => array(self::ACTION_DELETE)));
     }
 
+    /**
+     * Example of absolutely custom listing query that has support for
+     * search, sorting and pagination.
+     */
     public function smartqueryAction() {
         $fields = array(
+            // Must respect the format <tableAlias>.<fieldName>
             'r.name' => array(
                 'title'     => 'Name',
+                // Needed for proper field handling.
                 'dataType'  => 'varchar',
                 'searchable'=> true,
+                'sortable'=> true,
             ),
             'r.age' => array(
                 'title' => 'Age',
@@ -86,15 +93,15 @@ class ReadersController extends Zend_Controller_Scaffolding
             ),
             'books' => array(
                 'title'    => 'Assigned books',
-                'dataType' => 'int'
+                'dataType' => 'int',
+                'sortable'=> true,
             )
         );
 
         $opts = array(
-            'csrfProtected'     => false,
-            'entityTitle'       => 'reader',
-            'useIndexAction'    => true,
-            'disabledActions'   => array(self::ACTION_DELETE));
+            'indexAction'   => true,
+            'disabledActions'   => array(self::ACTION_DELETE)
+        );
 
         $select = Zend_Db_Table::getDefaultAdapter()->select();
         $select->from(array('r' => 'readers'),

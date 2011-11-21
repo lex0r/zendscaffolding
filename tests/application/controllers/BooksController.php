@@ -21,6 +21,7 @@ class BooksController extends Zend_Controller_Scaffolding
                 'cols'  => 40,
                 'listOrder' => 2,
                 'editOrder' => 2,
+                'hide' => 'list'
             ),
             'available' => array(
                 'fieldType' => 'checkbox',
@@ -70,21 +71,15 @@ class BooksController extends Zend_Controller_Scaffolding
         $this->scaffold(new Application_Model_Books(), $this->fields, array('csrfProtected' => false, 'entityTitle' => 'book'));
     }
 
-    public function  indexAction() {
-        $this->scaffold(new Application_Model_Books(), $this->fields, array('csrfProtected' => false, 'entityTitle' => 'book'));
-        parent::indexAction();
-    }
-
     public function pagerAction() {
         $fields = array();
 
         $this->scaffold(new Application_Model_Books(), $fields,
                 array(
                     'csrfProtected' => false,
-                    'useIndexAction' => true,
+                    'indexAction' => true,
                     'pagination' => array('itemsPerPage' => 2)
                 ));
-        parent::indexAction();
     }
 
     public function readonlyAction() {
@@ -93,10 +88,9 @@ class BooksController extends Zend_Controller_Scaffolding
         $this->scaffold(new Application_Model_Books(), $fields,
                 array(
                     'csrfProtected' => false,
-                    'useIndexAction' => true,
+                    'indexAction' => true,
                     'readonly' => true
                 ));
-        parent::indexAction();
     }
 
     public function loadRichTextEditor(array $fields) {
