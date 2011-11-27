@@ -238,7 +238,8 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
             if ($indexAction) {
                 $this->getHelper('ViewRenderer')
                      ->setViewScriptPathSpec(sprintf('%s/index.:suffix', $this->options['viewFolder']));
-                $this->indexAction();
+                // Call native index action, since it may be overriden in descendant class.
+                self::indexAction();
             } else {
                 $this->getHelper('ViewRenderer')
                      ->setViewScriptPathSpec(sprintf('%s/:action.:suffix', $this->options['viewFolder']));
