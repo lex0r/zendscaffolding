@@ -1162,7 +1162,7 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
                             'description'   => $this->getColumnDescription($columnName),
                             'required'      => $required,
                             'value'         => $defaultValue,
-                            'disableTranslator' => !empty($columnDetails['translate']) ? false : true
+                            'disableTranslator' => !empty($this->fields[$columnName]['translate']) ? false : true
                         )
                     );
                 }
@@ -1269,7 +1269,7 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
                     $elementType,
                     array_merge(array(
                         'multiOptions'  => $options,
-                        'disableTranslator' => !empty($columnDetails['translate']) ? false : true
+                        'disableTranslator' => !empty($this->fields[$columnName]['translate']) ? false : true
                         ), $elementOptions)
                 );
             } elseif (in_array($dataType, $this->dataTypes['numeric'])) {
