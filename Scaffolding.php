@@ -706,7 +706,7 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
             $matches = array();
             if (isset($columnDetails['searchOptions']) && is_array($columnDetails['searchOptions'])) {
                 $options = $columnDetails['searchOptions'];
-                $options[''] = 'any';
+                $options[''] = $this->translate('any');
                 ksort($options);
 
                 if ($fieldType == 'radio') {
@@ -719,7 +719,7 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
                     $elementType,
                     array(
                         'multiOptions' => $options,
-                        'label' => $this->getColumnTitle($defColumnName),
+                        'label' => $this->getColumnTitle($defColumnName, empty($columnDetails['translate'])),
                         'class' => self::CSS_ID . '-search-' . $elementType,
                         'value' => '',
                         'disableTranslator' => empty($columnDetails['translate'])
@@ -783,6 +783,12 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
             }
 
             //@todo: allow to search for certain empty values
+
+            // Save custom attributes
+            if (isset($this->fields[$defColumnName]['attribs'])
+                    && is_array($this->fields[$defColumnName]['attribs'])) {
+                $form['elements'][$columnName][1] = array_merge($form['elements'][$columnName][1], $this->fields[$defColumnName]['attribs']);
+            }
         }
 
         $form['elements']['submit'] = array(
@@ -1512,7 +1518,7 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
                         $options[$match] = $match;
                     }
                 }
-                $options[''] = 'any';
+                $options[''] = $this->translate('any');
                 ksort($options);
 
                 if (!empty($columnDetails['fieldType']) && $columnDetails['fieldType'] == 'radio') {
@@ -1578,7 +1584,7 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
                                         array_shift($ruleDetails['refColumns']) : $ruleDetails['refColumns'];
 
                         $options = array();
-                        $options[''] = '';
+                        $options[''] = $this->translate('any');
 
                         $relatedModel = new $ruleDetails['refTableClass']();
                         foreach ($relatedModel->fetchAll()->toArray() as $k => $v) {
@@ -1587,9 +1593,16 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
                                 $options[$key] = $v[$displayField];
                             }
                         }
+                        ksort($options);
+
+                        if (!empty($columnDetails['fieldType']) && $columnDetails['fieldType'] == 'radio') {
+                            $elementType = 'radio';
+                        } else {
+                            $elementType = 'select';
+                        }
 
                         $form['elements'][$columnName] = array(
-                            'select', array(
+                            $elementType, array(
                                 'multiOptions'  => $options,
                                 'label'         => $this->getColumnTitle($columnName, empty($columnDetails['translate'])),
                                 'class'         => self::CSS_ID . '-search-select',
@@ -1626,6 +1639,11 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
 //                        )
 //                    );
 //            }
+            // Save custom attributes
+            if (isset($this->fields[$defColumnName]['attribs'])
+                    && is_array($this->fields[$defColumnName]['attribs'])) {
+                $form['elements'][$columnName][1] = array_merge($form['elements'][$columnName][1], $this->fields[$defColumnName]['attribs']);
+            }
         }
 
         $form['elements']['submit'] = array(
