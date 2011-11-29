@@ -721,7 +721,8 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
                         'multiOptions' => $options,
                         'label' => $this->getColumnTitle($defColumnName),
                         'class' => self::CSS_ID . '-search-' . $elementType,
-                        'value' => ''
+                        'value' => '',
+                        'disableTranslator' => !empty($columnDetails['translate']) ? false : true
                     )
                 );
             } elseif (in_array($dataType, $this->dataTypes['time'])) {
@@ -1161,6 +1162,7 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
                             'description'   => $this->getColumnDescription($columnName),
                             'required'      => $required,
                             'value'         => $defaultValue,
+                            'disableTranslator' => !empty($columnDetails['translate']) ? false : true
                         )
                     );
                 }
@@ -1265,7 +1267,10 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
 
                 $form['elements'][$columnName] = array(
                     $elementType,
-                    array_merge(array('multiOptions'  => $options), $elementOptions)
+                    array_merge(array(
+                        'multiOptions'  => $options,
+                        'disableTranslator' => !empty($columnDetails['translate']) ? false : true
+                        ), $elementOptions)
                 );
             } elseif (in_array($dataType, $this->dataTypes['numeric'])) {
                 // Generate fields for numerics.
@@ -1381,6 +1386,7 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
                             'validators'    => isset($this->fields[$columnName]['validators']) ?
                                                $this->prepareValidators($columnName, $this->fields[$columnName]['validators'], $entityData)
                                                : array(),
+                            'disableTranslator' => !empty($columnDetails['translate']) ? false : true
                         )
                     );
 
@@ -1521,7 +1527,8 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
                         'multiOptions' => $options,
                         'label' => $this->getColumnTitle($defColumnName),
                         'class' => self::CSS_ID . '-search-' . $elementType,
-                        'value' => ''
+                        'value' => '',
+                        'disableTranslator' => !empty($columnDetails['translate']) ? false : true
                     )
                 );
             } elseif (in_array($dataType, $this->dataTypes['time'])) {
@@ -1586,6 +1593,7 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
                                 'multiOptions'  => $options,
                                 'label'         => $this->getColumnTitle($columnName),
                                 'class'         => self::CSS_ID . '-search-select',
+                                'disableTranslator' => !empty($columnDetails['translate']) ? false : true
                             )
                         );
                     }
