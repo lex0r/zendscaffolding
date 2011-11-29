@@ -722,7 +722,7 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
                         'label' => $this->getColumnTitle($defColumnName),
                         'class' => self::CSS_ID . '-search-' . $elementType,
                         'value' => '',
-                        'disableTranslator' => !empty($columnDetails['translate']) ? false : true
+                        'disableTranslator' => empty($columnDetails['translate'])
                     )
                 );
             } elseif (in_array($dataType, $this->dataTypes['time'])) {
@@ -1158,11 +1158,11 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
                     $form['elements'][$columnName] = array(
                         'select', array(
                             'multiOptions'  => $options,
-                            'label'         => $this->getColumnTitle($columnName),
-                            'description'   => $this->getColumnDescription($columnName),
+                            'label'         => $this->getColumnTitle($columnName, empty($this->fields[$columnName]['translate'])),
+                            'description'   => $this->getColumnDescription($columnName, empty($this->fields[$columnName]['translate'])),
                             'required'      => $required,
                             'value'         => $defaultValue,
-                            'disableTranslator' => !empty($this->fields[$columnName]['translate']) ? false : true
+                            'disableTranslator' => empty($this->fields[$columnName]['translate'])
                         )
                     );
                 }
@@ -1175,8 +1175,8 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
             }
 
             $elementOptions = array(
-                'label'         => $this->getColumnTitle($columnName),
-                'description'   => $this->getColumnDescription($columnName),
+                'label'         => $this->getColumnTitle($columnName, empty($this->fields[$columnName]['translate'])),
+                'description'   => $this->getColumnDescription($columnName, empty($this->fields[$columnName]['translate'])),
                 'required'      => $required,
                 'value'         => $defaultValue,
                 'validators'    => isset($this->fields[$columnName]['validators'])
@@ -1269,7 +1269,7 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
                     $elementType,
                     array_merge(array(
                         'multiOptions'  => $options,
-                        'disableTranslator' => !empty($this->fields[$columnName]['translate']) ? false : true
+                        'disableTranslator' => empty($this->fields[$columnName]['translate'])
                         ), $elementOptions)
                 );
             } elseif (in_array($dataType, $this->dataTypes['numeric'])) {
@@ -1380,13 +1380,13 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
                     $form['elements'][$formColumnName] = array(
                         $elementType, array(
                             'multiOptions' => $options,
-                            'label' => $this->getColumnTitle($columnName),
-                            'description'   => $this->getColumnDescription($columnName),
+                            'label' => $this->getColumnTitle($columnName, empty($columnDetails['translate'])),
+                            'description'   => $this->getColumnDescription($columnName, empty($columnDetails['translate'])),
                             'required'  => $required,
                             'validators'    => isset($this->fields[$columnName]['validators']) ?
                                                $this->prepareValidators($columnName, $this->fields[$columnName]['validators'], $entityData)
                                                : array(),
-                            'disableTranslator' => !empty($columnDetails['translate']) ? false : true
+                            'disableTranslator' => empty($columnDetails['translate'])
                         )
                     );
 
@@ -1525,10 +1525,10 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
                     $elementType,
                     array(
                         'multiOptions' => $options,
-                        'label' => $this->getColumnTitle($defColumnName),
+                        'label' => $this->getColumnTitle($defColumnName, empty($columnDetails['translate'])),
                         'class' => self::CSS_ID . '-search-' . $elementType,
                         'value' => '',
-                        'disableTranslator' => !empty($columnDetails['translate']) ? false : true
+                        'disableTranslator' => empty($columnDetails['translate'])
                     )
                 );
             } elseif (in_array($dataType, $this->dataTypes['time'])) {
@@ -1591,9 +1591,9 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
                         $form['elements'][$columnName] = array(
                             'select', array(
                                 'multiOptions'  => $options,
-                                'label'         => $this->getColumnTitle($columnName),
+                                'label'         => $this->getColumnTitle($columnName, empty($columnDetails['translate'])),
                                 'class'         => self::CSS_ID . '-search-select',
-                                'disableTranslator' => !empty($columnDetails['translate']) ? false : true
+                                'disableTranslator' => empty($columnDetails['translate'])
                             )
                         );
                     }
@@ -1951,12 +1951,18 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
      * @param String $columnFieldName
      * @return String $columnLabel
      */
-    private function getColumnTitle($columnName)
+    private function getColumnTitle($columnName, $translate = false)
     {
         if (isset($this->fields[$columnName]['title'])) {
-            return $this->fields[$columnName]['title'];
+            $title = $this->fields[$columnName]['title'];
         } else {
-            return ucfirst($columnName);
+            $title = ucfirst($columnName);
+        }
+
+        if ($translate) {
+            return $this->translate($title);
+        } else {
+            return $title;
         }
     }
 
@@ -1965,12 +1971,23 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
      * @param String $columnFieldName
      * @return String $columnLabel
      */
-    private function getColumnDescription($columnName)
+    private function getColumnDescription($columnName, $translate = false)
     {
         if (isset($this->fields[$columnName]['description'])) {
-            return $this->fields[$columnName]['description'];
+            $description = $this->fields[$columnName]['description'];
+        } else {
+            $description = '';
         }
-        return null;
+
+        if ($description) {
+            if ($translate) {
+                return $this->translate($description);
+            } else {
+                return $description;
+            }
+        } else {
+            return null;
+        }
     }
 
     /**
