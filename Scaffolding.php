@@ -1871,7 +1871,7 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
         }
 
         $info = $this->getMetadata();
-        $itemList = array();
+        $itemList = $origItemList = array();
 
         foreach ($items as $item) {
             // Convert to array if object.
@@ -1895,20 +1895,25 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
                     $column = $columnName;
                 }
 
-                // null values may be returned.
+                // Null values may be returned.
                 $value  = !empty($item[$column]) ? $item[$column] : null;
+
+                // Save original value for possbile usage.
+                $origRow[$columnName] = $value;
 
                 // Call list view modifier for specific column if set
                 if (isset($columnDetails['listModifier'])) {
                     $value = call_user_func($columnDetails['listModifier'], $value);
                 }
 
+                // Translate the field if necessary.
                 if (!empty($columnDetails['translate'])) {
                     $value = $this->view->translate($value);
                 }
 
                 $row[$columnName] = $value;
             }
+
             // Fetch PK(s).
             if (!is_null($info)) {
                 $keys = array();
@@ -1918,10 +1923,12 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
                 $row['pkParams'] = $keys;
             }
 
-            $itemList[] = $row;
+            $itemList[]     = $row;
+            $origItemList[] = $origRow;
         }
 
-        $this->view->items = $itemList;
+        $this->view->items      = $itemList;
+        $this->view->origItems  = $origItemList;
         return $itemList;
     }
 
