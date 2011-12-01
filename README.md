@@ -1,3 +1,9 @@
+#Introduction
+**Zend Framework** now misses an important functionality - quick application scaffolding and record management.
+The project aims at filling this gap with a set of useful components.
+You may track the project development through the official ZF wiki here:
+http://framework.zend.com/wiki/display/ZFPROP/Zend_Controller_Scaffolding+-+Alex+Oroshchuk
+
 # Overview
 This Zend controller extension class allows you to quickly scaffold
 an feature-rich record management interface using Zend MVC core components.
@@ -35,9 +41,7 @@ The only code you have to write to have basic CRUD is the one that extends your 
 
 from its `init` or any other relevant method.
 
-**Some screenshots from demo/testing application**
-<a href="http://zendscaffolding.googlecode.com/svn/wiki/listing.png">Record list</a>
-<a href="http://zendscaffolding.googlecode.com/svn/wiki/create.png">Entity creation</a>
-
-**A demo application showing all major features is available under tests folder**
+# How to start using?
+You should take a look at `docs` folder, but if you are fond of learning y example
+**a demo application showing all major features is available under `tests` folder**
 Use this app for demo/quick start purposes, or by PHPUnit for testing own changes.
