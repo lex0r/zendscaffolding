@@ -1879,6 +1879,8 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
                 $item = (array)$item;
             }
 
+            $origRow = array();
+            
             foreach ($this->fields as $columnName => $columnDetails) {
                 // Table fields have fully-qualified SQL name.
                 if (strpos($columnDetails['sqlName'], '.')) {
@@ -1899,7 +1901,7 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
                 $value  = !empty($item[$column]) ? $item[$column] : null;
 
                 // Save original value for possbile usage.
-                $origRow[$columnName] = $value;
+                $origValue  = $value;
 
                 // Call list view modifier for specific column if set
                 if (isset($columnDetails['listModifier'])) {
@@ -1912,6 +1914,10 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
                 }
 
                 $row[$columnName] = $value;
+
+                if ($value != $origValue) {
+                    $origRow[$columnName] = $origValue;
+                }
             }
 
             // Fetch PK(s).
