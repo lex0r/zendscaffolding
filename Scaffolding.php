@@ -421,7 +421,11 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
                 } elseif (strpos($field, self::CSS_ID . '_to')) {
                     $field = str_replace('_' . self::CSS_ID . '_to', '', $field);
                     $select->where("{$tableInfo['name']}.$field <= ?", $value);
-                } else {
+                } elseif (strpos($field, '_isempty')) {
+                    $field = str_replace('_isempty', '', $field);
+                    $select->where("({$tableInfo['name']}.$field IS NULL OR {$tableInfo['name']}.$field = '')");
+                }
+                else {
                   // Search all other native fields.
                   if (isset($tableInfo['metadata'][$field])) {
                       $dataType = strtolower($tableInfo['metadata'][$field]['DATA_TYPE']);
@@ -1630,15 +1634,18 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
 
             // Allow to search empty records
             // @todo: implement search by empty values
-//            if (isset($this->fields[$columnName]['searchEmpty'])) {
-//                $form['elements']["{$columnName}searchempty"] = array(
-//                        'checkbox',
-//                        array(
-//                            'class' => self::CSS_ID . '-search-radio',
-//                            'label' => $this->getColumnTitle($columnName) . _(' is empty'),
-//                        )
-//                    );
-//            }
+            if (isset($this->fields[$columnName]['searchEmpty'])) {
+                $form['elements']["{$columnName}_isempty"] = array(
+                    'checkbox',
+                     array(
+                          'class' => self::CSS_ID . '-search-radio',
+                          'label' => (empty($this->fields[$columnName]['searchEmpty']['label'])
+                                  ? $this->getColumnTitle($columnName) . ' ' . _('is empty')
+                                  : $this->fields[$columnName]['searchEmpty']['label']),
+                     )
+                );
+            }
+
             // Save custom attributes
             if (isset($this->fields[$defColumnName]['attribs'])
                     && is_array($this->fields[$defColumnName]['attribs'])) {
@@ -1880,7 +1887,7 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
             }
 
             $origRow = array();
-            
+
             foreach ($this->fields as $columnName => $columnDetails) {
                 // Table fields have fully-qualified SQL name.
                 if (strpos($columnDetails['sqlName'], '.')) {
