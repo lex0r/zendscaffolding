@@ -421,43 +421,43 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
                 } elseif (strpos($field, self::CSS_ID . '_to')) {
                     $field = str_replace('_' . self::CSS_ID . '_to', '', $field);
                     $select->where("{$tableInfo['name']}.$field <= ?", $value);
-                } elseif (strpos($field, '_isempty')) {
+                } elseif (strpos($field, '_isempty') && $value) {
                     $field = str_replace('_isempty', '', $field);
-                    $select->where("({$tableInfo['name']}.$field IS NULL OR {$tableInfo['name']}.$field = '')");
+                    $select->where("{$tableInfo['name']}.$field IS NULL OR {$tableInfo['name']}.$field = ''");
                 }
                 else {
-                  // Search all other native fields.
-                  if (isset($tableInfo['metadata'][$field])) {
-                      $dataType = strtolower($tableInfo['metadata'][$field]['DATA_TYPE']);
-                      $fieldType = !empty($this->fields[$field]['fieldType']) ? $this->fields[$field]['fieldType'] : '';
-                      $tableName = $tableInfo['name'];
-                  } else {
-                      // Search by related table field.
-                      // Column name was normalized, need to find it.
-                      $fieldDefs = array_keys($this->fields);
-                      $fieldFound = false;
-                      foreach ($fieldDefs as $fieldName) {
-                          if (strpos($fieldName, '.') !== false && str_replace('.', '', $fieldName) == $field) {
-                              $field = $fieldName;
-                              $fieldFound = true;
-                              break;
-                          }
-                      }
+                    // Search all other native fields.
+                    if (isset($tableInfo['metadata'][$field])) {
+                        $dataType = strtolower($tableInfo['metadata'][$field]['DATA_TYPE']);
+                        $fieldType = !empty($this->fields[$field]['fieldType']) ? $this->fields[$field]['fieldType'] : '';
+                        $tableName = $tableInfo['name'];
+                    } else {
+                        // Search by related table field.
+                        // Column name was normalized, need to find it.
+                        $fieldDefs = array_keys($this->fields);
+                        $fieldFound = false;
+                        foreach ($fieldDefs as $fieldName) {
+                            if (strpos($fieldName, '.') !== false && str_replace('.', '', $fieldName) == $field) {
+                                $field = $fieldName;
+                                $fieldFound = true;
+                                break;
+                            }
+                        }
 
-                      // The submitted form value is not from model, skip it.
-                      if (!$fieldFound) {
-                          continue;
-                      }
+                        // The submitted form value is not from model, skip it.
+                        if (!$fieldFound) {
+                            continue;
+                        }
 
-                      $dataType = $this->fields[$field]['fieldType'];
-                      list($tableName, $field) = explode('.', $this->fields[$field]['sqlName']);
-                  }
+                        $dataType = $this->fields[$field]['fieldType'];
+                        list($tableName, $field) = explode('.', $this->fields[$field]['sqlName']);
+                    }
 
-                  if (in_array($dataType, $this->dataTypes['text']) || $fieldType == 'text') {
-                      $select->where("$tableName.$field LIKE ?", $value);
-                  } else {
-                      $select->where("$tableName.$field = ?", $value);
-                  }
+                    if (in_array($dataType, $this->dataTypes['text']) || $fieldType == 'text') {
+                        $select->where("$tableName.$field LIKE ?", $value);
+                    } else {
+                        $select->where("$tableName.$field = ?", $value);
+                    }
                 }
 
                 $searchActive = true;
@@ -602,50 +602,59 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
             $searchForm->populate($filterFields);
 
             foreach ($filterFields as $field => $value) {
-              if ($value || is_numeric($value)) {
-                // Treat date fields specially.
-                $dateFrom = $dateTo = false;
-                if (strpos($field, self::CSS_ID . '_from')) {
-                    $field = str_replace('_' . self::CSS_ID . '_from', '', $field);
-                    $dateFrom = true;
-                } elseif (strpos($field, self::CSS_ID . '_to')) {
-                    $field = str_replace('_' . self::CSS_ID . '_to', '', $field);
-                    $dateTo = true;
-                }
+                if ($value || is_numeric($value)) {
+                  // Treat date fields specially.
+                  $dateFrom = $dateTo = false;
+                  $searchEmpty = false;
+                  if (strpos($field, self::CSS_ID . '_from')) {
+                      $field = str_replace('_' . self::CSS_ID . '_from', '', $field);
+                      $dateFrom = true;
+                  } elseif (strpos($field, self::CSS_ID . '_to')) {
+                      $field = str_replace('_' . self::CSS_ID . '_to', '', $field);
+                      $dateTo = true;
+                  } elseif (strpos($field, '_isempty') && $value) {
+                      $field = str_replace('_isempty', '', $field);
+                      $searchEmpty = true;
+                  }
 
-                // Column name was normalized, need to find it.
-                $fieldDefs = array_keys($this->fields);
-                $fieldFound = false;
-                foreach ($fieldDefs as $fieldName) {
-                    if (strpos($fieldName, '.') !== false && str_replace('.', '', $fieldName) == $field) {
-                        $field = $fieldName;
-                        $fieldFound = true;
-                        break;
-                    }
-                }
+                  // Column name was normalized, need to find it.
+                  $fieldDefs = array_keys($this->fields);
+                  $fieldFound = false;
+                  foreach ($fieldDefs as $fieldName) {
+                      if ($fieldName == $field
+                              || (strpos($fieldName, '.') !== false && str_replace('.', '', $fieldName) == $field)) {
+                          $field = $fieldName;
+                          $fieldFound = true;
+                          break;
+                      }
+                  }
 
-                // The submitted form value is not from field definitions, skip it.
-                if (!$fieldFound) {
-                    continue;
-                }
+                  // The submitted form value is not from field definitions, skip it.
+                  if (!$fieldFound) {
+                      continue;
+                  }
 
-                // Date is a period, need to handle both start and end date.
-                if (in_array($this->fields[$field]['dataType'], $this->dataTypes['time'])) {
-                    if (!empty($dateFrom)) {
-                        $select->where("{$this->fields[$field]['sqlName']} >= ?", $value);
-                    }
-                    if (!empty($dateTo)) {
-                        $select->where("{$this->fields[$field]['sqlName']} <= ?", $value);
-                    }
-                } elseif (in_array($this->fields[$field]['dataType'], $this->dataTypes['text'])) {
-                    $select->where("{$this->fields[$field]['sqlName']} LIKE ?", $value);
-                } else {
-                    $select->where("{$this->fields[$field]['sqlName']} = ?", $value);
-                }
+                  // Search by empty field
+                  // @todo: handle aggregation - use HAVING instead of WHERE
+                  if ($searchEmpty) {
+                      $select->where("{$this->fields[$field]['sqlName']} IS NULL OR {$this->fields[$field]['sqlName']} = ''");
+                  } elseif (in_array($this->fields[$field]['dataType'], $this->dataTypes['time'])) {
+                      // Date is a period, need to handle both start and end date.
+                      if (!empty($dateFrom)) {
+                          $select->where("{$this->fields[$field]['sqlName']} >= ?", $value);
+                      }
+                      if (!empty($dateTo)) {
+                          $select->where("{$this->fields[$field]['sqlName']} <= ?", $value);
+                      }
+                  } elseif (in_array($this->fields[$field]['dataType'], $this->dataTypes['text'])) {
+                      $select->where("{$this->fields[$field]['sqlName']} LIKE ?", $value);
+                  } else {
+                      $select->where("{$this->fields[$field]['sqlName']} = ?", $value);
+                  }
 
-                $searchActive = true;
-              }
-          }
+                  $searchActive = true;
+                }
+            }
         }
 
         /**
@@ -786,12 +795,23 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
                 throw new Zend_Controller_Exception("Fields of type '$dataType' are not searchable.");
             }
 
-            //@todo: allow to search for certain empty values
-
             // Save custom attributes
             if (isset($this->fields[$defColumnName]['attribs'])
                     && is_array($this->fields[$defColumnName]['attribs'])) {
                 $form['elements'][$columnName][1] = array_merge($form['elements'][$columnName][1], $this->fields[$defColumnName]['attribs']);
+            }
+
+            // Allow to search empty records
+            if (isset($columnDetails['searchEmpty'])) {
+                $form['elements']["{$columnName}_isempty"] = array(
+                    'checkbox',
+                     array(
+                          'class' => self::CSS_ID . '-search-radio',
+                          'label' => (empty($columnDetails['searchEmpty']['label'])
+                                  ? $this->getColumnTitle($defColumnName) . ' ' . _('is empty')
+                                  : $columnDetails['searchEmpty']['label']),
+                     )
+                );
             }
         }
 
@@ -1633,7 +1653,6 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
             }
 
             // Allow to search empty records
-            // @todo: implement search by empty values
             if (isset($this->fields[$columnName]['searchEmpty'])) {
                 $form['elements']["{$columnName}_isempty"] = array(
                     'checkbox',

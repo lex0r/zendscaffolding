@@ -49,6 +49,7 @@ class BooksController extends Zend_Controller_Scaffolding
                 'hide' => 'list',
                 'displayField' => 'Catalog.name',
                 'searchable' => true,
+                'searchEmpty' => array('label' => 'Not catalogued')
             ),
             'Catalog.name' => array(
                 'title' => 'Catalog',
