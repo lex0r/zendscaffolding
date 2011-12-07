@@ -360,7 +360,7 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
             }
 
             // Prepare sortable fields.
-            if (!empty($this->fields[$defColumnName]['sortable'])) {
+            if (!empty($this->fields[$defColumnName]['sort'])) {
                 $sortingFields[$tableName] = $columnName;
             }
 
@@ -368,7 +368,7 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
                 "$tableName." . (is_array($columnName) ? current($columnName) : $columnName);
 
             $defSortField = empty($defSortField) ?
-                            (empty($this->fields[$defColumnName]['sortBy']) ? null : $defColumnName)
+                            (empty($this->fields[$defColumnName]['sort']['default']) ? null : $defColumnName)
                             : $defSortField;
         }
 
@@ -472,7 +472,7 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
         $sortMode   = $this->_getParam('mode') == 'desc' ? 'desc' : 'asc';
         if (!$sortField && $defSortField) {
             $sortField  = $defSortField;
-            $sortMode   = $this->fields[$sortField]['sortBy'] == 'desc' ? 'desc' : 'asc';
+            $sortMode   = $this->fields[$sortField]['sort']['default'] == 'desc' ? 'desc' : 'asc';
         }
         if ($sortField) {
             $select->order("{$this->fields[$sortField]['sqlName']} $sortMode");
@@ -567,14 +567,14 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
             }
 
             // Prepare sortable fields.
-            if (!empty($this->fields[$defColumnName]['sortable'])) {
+            if (!empty($this->fields[$defColumnName]['sort'])) {
                 $sortingFields[$tableName] = $columnName;
             }
 
             $this->fields[$defColumnName]['order'] = $defaultOrder++;
 
             $defSortField = empty($defSortField) ?
-                            (empty($this->fields[$defColumnName]['sortBy']) ? null : $defColumnName)
+                            (empty($this->fields[$defColumnName]['sort']['default']) ? null : $defColumnName)
                             : $defSortField;
         }
 
@@ -670,7 +670,7 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
         $sortMode   = $this->_getParam('mode') == 'desc' ? 'desc' : 'asc';
         if (!$sortField && $defSortField) {
             $sortField  = $defSortField;
-            $sortMode   = $this->fields[$sortField]['sortBy'] == 'desc' ? 'desc' : 'asc';
+            $sortMode   = $this->fields[$sortField]['sort']['default'] == 'desc' ? 'desc' : 'asc';
         }
         if ($sortField) {
             $select->order("{$this->fields[$sortField]['sqlName']} $sortMode");
@@ -1862,7 +1862,7 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
 
             $name = $this->translate($this->getColumnTitle($columnName));
             // Generate sorting link
-            if (!empty($this->fields[$columnName]['sortable'])) {
+            if (!empty($this->fields[$columnName]['sort'])) {
 
                 $currentMode = ($sortField == $columnName ? $sortMode : '');
 

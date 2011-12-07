@@ -10,8 +10,7 @@ class BooksController extends Zend_Controller_Scaffolding
         $this->fields = array(
             'title' => array(
                 'search' => true,
-                'sortable'  => true,
-                'sortBy'  => 'desc',
+                'sort'  => array('default' => 'desc'),
                 'listOrder' => 1,
                 'editOrder' => 1,
             ),
@@ -40,7 +39,7 @@ class BooksController extends Zend_Controller_Scaffolding
             'Category.name' => array(
                 'title' => 'Category',
                 'search' => true,
-                'sortable'  => true,
+                'sort'  => true,
                 'listOrder' => 3,
                 'editOrder' => 3,
             ),
@@ -51,7 +50,7 @@ class BooksController extends Zend_Controller_Scaffolding
             ),
             'Catalog.name' => array(
                 'title' => 'Catalog',
-                'sortable'  => true,
+                'sort'  => true,
                 'listOrder' => 4,
                 'editOrder' => 4,
             ),

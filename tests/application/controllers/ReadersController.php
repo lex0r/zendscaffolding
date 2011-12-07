@@ -13,7 +13,7 @@ class ReadersController extends Zend_Controller_Scaffolding
                 // We want to be able to search by the reader's name
                 'search'=> true,
                 // We want to be able to sort by name
-                'sortable'=> true,
+                'sort'=> array('default' => 'asc'),
                 // The field is first in the list.
                 'listOrder' => 1
             ),
@@ -30,7 +30,7 @@ class ReadersController extends Zend_Controller_Scaffolding
             'Category.name' => array(
                 'title' => 'Category',
                 'listOrder' => 2,
-                'sortable' => true
+                'sort' => true
             ),
             // A field from dependent table that we also want to show.
             // Note: 'Reader' is the name of the reference rule in the dependent
@@ -95,7 +95,7 @@ class ReadersController extends Zend_Controller_Scaffolding
                 // Needed for proper field handling.
                 'dataType'  => 'varchar',
                 'search'=> true,
-                'sortable'=> true,
+                'sort'=> true,
             ),
             'r.age' => array(
                 'title' => 'Age',
@@ -105,7 +105,7 @@ class ReadersController extends Zend_Controller_Scaffolding
             'books' => array(
                 'title'    => 'Assigned books',
                 'dataType' => 'int',
-                'sortable'=> true,
+                'sort'=> true,
                 'search' => array('empty' => true, 'emptyLabel' => 'No books', 'emptyOnly' => true),
                 'aggregate' => true
             )
