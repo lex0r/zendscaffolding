@@ -643,7 +643,7 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
                           $method = 'where';
                       }
 
-                      $select->$method("{$this->fields[$field]['sqlName']} IS NULL OR {$this->fields[$field]['sqlName']} = ''");
+                      $select->$method("{$this->fields[$field]['sqlName']} IS NULL OR {$this->fields[$field]['sqlName']} = 0");
                   } elseif (in_array($this->fields[$field]['dataType'], $this->dataTypes['time'])) {
                       // Date is a period, need to handle both start and end date.
                       if (!empty($dateFrom)) {
