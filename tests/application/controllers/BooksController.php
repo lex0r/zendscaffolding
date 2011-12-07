@@ -9,7 +9,7 @@ class BooksController extends Zend_Controller_Scaffolding
     {
         $this->fields = array(
             'title' => array(
-                'searchable' => true,
+                'search' => true,
                 'sortable'  => true,
                 'sortBy'  => 'desc',
                 'listOrder' => 1,
@@ -25,14 +25,13 @@ class BooksController extends Zend_Controller_Scaffolding
             ),
             'available' => array(
                 'fieldType' => 'checkbox',
-                'searchable' => true,
+                'search' => true,
                 'listOrder' => 5,
                 'editOrder' => 5,
             ),
             // We may need the ID value, so we fetch it.
             'category' => array(
                 'hide' => 'list', // do not show as separate column
-//                'searchable' => true,
                 'displayField' => 'Category.name', // use alternative column as displayed value for list/edit display
             ),
             // A foreign key field definition.
@@ -40,7 +39,7 @@ class BooksController extends Zend_Controller_Scaffolding
             // name is the column name that must be fetched
             'Category.name' => array(
                 'title' => 'Category',
-                'searchable' => true,
+                'search' => true,
                 'sortable'  => true,
                 'listOrder' => 3,
                 'editOrder' => 3,
@@ -48,12 +47,10 @@ class BooksController extends Zend_Controller_Scaffolding
             'catalog' => array(
                 'hide' => 'list',
                 'displayField' => 'Catalog.name',
-                'searchable' => true,
-                'searchEmpty' => array('label' => 'Not catalogued')
+                'search' => array('empty' => true, 'emptyLabel' => 'Not catalogued'),
             ),
             'Catalog.name' => array(
                 'title' => 'Catalog',
-                //'searchable' => true,
                 'sortable'  => true,
                 'listOrder' => 4,
                 'editOrder' => 4,

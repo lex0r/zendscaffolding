@@ -11,7 +11,7 @@ class ReadersController extends Zend_Controller_Scaffolding
                 // The title of the column
                 'title'     => 'Name',
                 // We want to be able to search by the reader's name
-                'searchable'=> true,
+                'search'=> true,
                 // We want to be able to sort by name
                 'sortable'=> true,
                 // The field is first in the list.
@@ -44,7 +44,7 @@ class ReadersController extends Zend_Controller_Scaffolding
                 'listOrder' => 3
             ),
             'created' => array(
-                'searchable'=> true,
+                'search'=> true,
                 // This field will be transmitted with other
                 // fields of type 'jsPicker' to loadDatePicker method.
                 // This allows to create a JS widget (calendar for date,
@@ -94,7 +94,7 @@ class ReadersController extends Zend_Controller_Scaffolding
                 'title'     => 'Name',
                 // Needed for proper field handling.
                 'dataType'  => 'varchar',
-                'searchable'=> true,
+                'search'=> true,
                 'sortable'=> true,
             ),
             'r.age' => array(
@@ -106,6 +106,8 @@ class ReadersController extends Zend_Controller_Scaffolding
                 'title'    => 'Assigned books',
                 'dataType' => 'int',
                 'sortable'=> true,
+                'search' => array('empty' => true, 'emptyLabel' => 'No books', 'emptyOnly' => true),
+                'aggregate' => true
             )
         );
 

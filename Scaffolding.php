@@ -355,7 +355,7 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
             $fields[$tableName][] = $columnName;
 
             // Prepare search form fields.
-            if (!empty($this->fields[$defColumnName]['searchable'])) {
+            if (!empty($this->fields[$defColumnName]['search'])) {
                 $searchFields[$defColumnName] = $columnDetails;
             }
 
@@ -562,7 +562,7 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
             }
 
             // Prepare search form fields.
-            if (!empty($this->fields[$defColumnName]['searchable'])) {
+            if (!empty($this->fields[$defColumnName]['search'])) {
                 $searchFields[$defColumnName] = $columnDetails;
             }
 
@@ -717,8 +717,8 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
             $fieldType = !empty($columnDetails['fieldType']) ? $columnDetails['fieldType'] : null;
 
             $matches = array();
-            if (isset($columnDetails['searchOptions']) && is_array($columnDetails['searchOptions'])) {
-                $options = $columnDetails['searchOptions'];
+            if (isset($columnDetails['search']['options']) && is_array($columnDetails['search']['options'])) {
+                $options = $columnDetails['search']['options'];
                 $options[''] = $this->translate('any');
                 ksort($options);
 
@@ -795,23 +795,34 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
                 throw new Zend_Controller_Exception("Fields of type '$dataType' are not searchable.");
             }
 
-            // Save custom attributes
-            if (isset($this->fields[$defColumnName]['attribs'])
-                    && is_array($this->fields[$defColumnName]['attribs'])) {
-                $form['elements'][$columnName][1] = array_merge($form['elements'][$columnName][1], $this->fields[$defColumnName]['attribs']);
-            }
-
             // Allow to search empty records
-            if (isset($columnDetails['searchEmpty'])) {
-                $form['elements']["{$columnName}_isempty"] = array(
+            if (isset($columnDetails['search']['empty'])) {
+                $elementName = "{$columnName}_isempty";
+                $form['elements'][$elementName] = array(
                     'checkbox',
                      array(
                           'class' => self::CSS_ID . '-search-radio',
-                          'label' => (empty($columnDetails['searchEmpty']['label'])
+                          'label' => (empty($columnDetails['search']['emptyLabel'])
                                   ? $this->getColumnTitle($defColumnName) . ' ' . _('is empty')
-                                  : $columnDetails['searchEmpty']['label']),
+                                  : $columnDetails['search']['emptyLabel']),
                      )
                 );
+                // Save custom attributes
+                if (isset($columnDetails['attribs'])
+                        && is_array($columnDetails['attribs'])) {
+                    $form['elements'][$elementName][1] = array_merge($form['elements'][$elementName][1], $columnDetails['attribs']);
+                }
+            }
+
+            // Do not search by non-empty field value
+            if (isset($columnDetails['search']['emptyOnly'])) {
+                unset($form['elements'][$columnName]);
+            }
+
+            // Save custom attributes
+            if (isset($columnDetails['attribs'])
+                    && is_array($columnDetails['attribs'])) {
+                $form['elements'][$columnName][1] = array_merge($form['elements'][$columnName][1], $columnDetails['attribs']);
             }
         }
 
@@ -1529,12 +1540,12 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
             $matches = array();
             $set = false;
             if (isset($metadata[$columnName]) && preg_match('/^enum/i', $metadata[$columnName]['DATA_TYPE'])
-                    || (isset($columnDetails['searchOptions'])
-                            && is_array($columnDetails['searchOptions']) && $set = true)) {
+                    || (isset($columnDetails['search']['options'])
+                            && is_array($columnDetails['search']['options']) && $set = true)) {
                 $options = array();
                 // Try to use the specified options
                 if ($set) {
-                    $options = $columnDetails['searchOptions'];
+                    $options = $columnDetails['search']['options'];
                 }
                 // or extract options from enum
                 elseif (preg_match_all('/\'(.*?)\'/', $metadata[$columnName]['DATA_TYPE'], $matches)) {
@@ -1653,16 +1664,27 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
             }
 
             // Allow to search empty records
-            if (isset($this->fields[$columnName]['searchEmpty'])) {
-                $form['elements']["{$columnName}_isempty"] = array(
+            if (isset($this->fields[$defColumnName]['search']['empty'])) {
+                $elementName = "{$columnName}_isempty";
+                $form['elements'][$elementName] = array(
                     'checkbox',
                      array(
                           'class' => self::CSS_ID . '-search-radio',
-                          'label' => (empty($this->fields[$columnName]['searchEmpty']['label'])
-                                  ? $this->getColumnTitle($columnName) . ' ' . _('is empty')
-                                  : $this->fields[$columnName]['searchEmpty']['label']),
+                          'label' => (empty($this->fields[$defColumnName]['search']['emptyLabel'])
+                                  ? $this->getColumnTitle($defColumnName) . ' ' . _('is empty')
+                                  : $this->fields[$defColumnName]['search']['emptyLabel']),
                      )
                 );
+                // Save custom attributes
+                if (isset($this->fields[$defColumnName]['attribs'])
+                        && is_array($this->fields[$defColumnName]['attribs'])) {
+                    $form['elements'][$elementName][1] = array_merge($form['elements'][$elementName][1], $this->fields[$defColumnName]['attribs']);
+                }
+            }
+
+            // Do not search by non-empty field value
+            if (isset($this->fields[$defColumnName]['search']['emptyOnly'])) {
+                unset($form['elements'][$columnName]);
             }
 
             // Save custom attributes
