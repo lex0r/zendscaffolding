@@ -637,7 +637,13 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
                   // Search by empty field
                   // @todo: handle aggregation - use HAVING instead of WHERE
                   if ($searchEmpty) {
-                      $select->where("{$this->fields[$field]['sqlName']} IS NULL OR {$this->fields[$field]['sqlName']} = ''");
+                      if ($this->fields[$field]['aggregate']) {
+                          $method = 'having';
+                      } else {
+                          $method = 'where';
+                      }
+
+                      $select->$method("{$this->fields[$field]['sqlName']} IS NULL OR {$this->fields[$field]['sqlName']} = ''");
                   } elseif (in_array($this->fields[$field]['dataType'], $this->dataTypes['time'])) {
                       // Date is a period, need to handle both start and end date.
                       if (!empty($dateFrom)) {
