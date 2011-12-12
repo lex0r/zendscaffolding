@@ -34,14 +34,15 @@ is fully based on ZF MVC stack and depends on ALL the components (models, views 
 
 # Is it stable?
 About 15 functional tests (60+ assertions) are available now, and new tests are added periodically.
+The component has been used in three real-world projects, and will be used in upcoming as well.
+
+# How to start using?
 It's really easy to use.
 The only code you have to write to have basic CRUD is the one that extends your controller from Zend_Controller_Scaffolding class and calls
 
 `$this->scaffold(new Custom_Model_Extending_Zend_Db_Table())`
 
 from its `init` or any other relevant method.
-
-# How to start using?
-You should take a look at `docs` folder, but if you are fond of learning y example
+You should take a look at `docs` folder, but if you are fond of learning by example
 **a demo application showing all major features is available under `tests` folder**
-Use this app for demo/quick start purposes, or by PHPUnit for testing own changes.
+Use this app for demo/quick start purposes. Note: PHPUnit tests use it as well.
