@@ -123,5 +123,11 @@ class BooksController extends Zend_Controller_Scaffolding
         $this->getResponse()->setHeader('After-Delete', 'OK');
         return true;
     }
+
+    function prepareSearchForm(array &$form) {
+      // Search for available books by default.
+      $form['elements']['available'][1]['value'] = 1;
+      return parent::prepareSearchForm($form);
+    }
 }
 
