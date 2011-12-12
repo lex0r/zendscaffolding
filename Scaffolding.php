@@ -1127,6 +1127,12 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
         }
     }
 
+    /**
+     * Formats the post-action message according to the template.
+     * @param String $action action name
+     * @param String $msgType message type
+     * @return String
+     */
     private function getActionMessage($action, $msgType)
     {
         return sprintf($this->translate($this->messages[$action][$msgType]), $this->options['entityTitle']);
