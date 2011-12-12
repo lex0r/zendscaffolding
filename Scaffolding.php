@@ -104,6 +104,12 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
     );
 
     /**
+     * Last error message.
+     * @var String
+     */
+    protected $lastError;
+
+    /**
      * Default scaffolding options.
      * @var Array
      */
@@ -924,6 +930,7 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
                     }
                 }
                 catch (Zend_Db_Exception $e) {
+                    $this->lastError = $e->getMessage();
                     Zend_Db_Table::getDefaultAdapter()->rollBack();
                     $this->_helper->FlashMessenger($this->getActionMessage(self::ACTION_CREATE, self::MSG_ERR));
                 }
@@ -978,6 +985,7 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
                 $this->_redirect("{$this->view->module}/{$this->view->controller}/index");
             }
         } catch (Zend_Db_Exception $e) {
+            $this->lastError = $e->getMessage();
             $this->_helper->FlashMessenger($this->getActionMessage(self::ACTION_DELETE, self::MSG_OK));
             $this->_redirect("{$this->view->module}/{$this->view->controller}/index");
         }
@@ -1057,6 +1065,7 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
                             $this->_redirect("{$this->view->module}/{$this->view->controller}/index");
                         }
                     } catch (Zend_Db_Exception $e) {
+                        $this->lastError = $e->getMessage();
                         Zend_Db_Table::getDefaultAdapter()->rollBack();
                         $this->_helper->FlashMessenger($this->getActionMessage(self::ACTION_UPDATE, self::MSG_ERR));
                     }
@@ -1892,6 +1901,7 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
         $this->view->headers = $header;
         return $header;
     }
+
     /**
      * Prepares the list of records. Optionally applies field listing modifiers.
      *
@@ -2261,7 +2271,7 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
     /**
      * Sorts fields for listing.
      */
-    function sortByListOrder($a, $b) {
+    private function sortByListOrder($a, $b) {
         if (!isset($a['listOrder'])) {
             $a['listOrder'] = $a['order'];
         }
@@ -2276,7 +2286,7 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
     /**
      * Sorts fields for listing.
      */
-    function sortByEditOrder($a, $b) {
+    private function sortByEditOrder($a, $b) {
         if (!isset($a['editOrder'])) {
             $a['editOrder'] = $a['order'];
         }
@@ -2291,7 +2301,7 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
     /**
      * Removes elements that must be skipped from listing.
      */
-    function removeHiddenListItems($value) {
+    private function removeHiddenListItems($value) {
         if (!empty($value['hide']) && ($value['hide'] === true || $value['hide'] == 'list')) {
             return false;
         }
