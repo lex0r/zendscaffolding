@@ -34,7 +34,7 @@ is fully based on ZF MVC stack and depends on ALL the components (models, views 
 
 # Is it stable?
 About 15 functional tests (60+ assertions) are available now, and new tests are added periodically.
-The component has been used in three real-world projects, and will be used in upcoming as well.
+The component has been used in at least three real-world projects of my own, and will be used in upcoming as well.
 
 # How to start using?
 It's really easy to use.
