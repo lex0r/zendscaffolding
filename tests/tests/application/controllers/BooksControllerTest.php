@@ -35,22 +35,27 @@ class BooksControllerTest extends Zend_Test_PHPUnit_ControllerTestCase
         // Clean up database before tests
         $db = Zend_Db_Table::getDefaultAdapter();
         $db->delete('readers');
+        $db->delete('reader_accounts');
         $db->delete('books');
         $db->delete('readers_books');
         $db->delete('reader_categories');
         $db->delete('book_categories');
+        $db->delete('book_catalogs');
 
-        // Create categories
+        // Create vocabularies
         $db->insert('book_categories', array('id' => 1, 'name' => 'SciFi'));
         $db->insert('book_categories', array('id' => 2, 'name' => 'Adventure'));
         $db->insert('reader_categories', array('id' => 1, 'name' => 'Student'));
         $db->insert('reader_categories', array('id' => 2, 'name' => 'Worker'));
-        
+        $db->insert('book_catalogs', array('id' => 1, 'name' => 'Upper floor'));
+        $db->insert('book_catalogs', array('id' => 2, 'name' => 'Lower floor'));
+
         $bookId = 0;
         $params = array(
                     'title'     => 'Book Title ' . (++$bookId),
                     'author'    => 'Book Author ' . ($bookId),
                     'category'  => 1,
+                    'catalog'   => 1,
                     'available' => 1,
                     'save'      => 'save'
                 );
@@ -97,7 +102,7 @@ class BooksControllerTest extends Zend_Test_PHPUnit_ControllerTestCase
     public function testUpdate() {
         $books = new Application_Model_Books();
         $abook = $books->select()->from($books)->where('1 = 1')->limit(1)->query()->fetchObject();
-        
+
         $request = $this->getRequest();
         $request->setMethod('POST')
                 ->setPost(array(
@@ -105,6 +110,7 @@ class BooksControllerTest extends Zend_Test_PHPUnit_ControllerTestCase
                     'title' => 'Book Title ' . $abook->id . ' updated',
                     'author'=> 'Book Author ' . $abook->id . ' updated',
                     'category'  => 2,
+                    'catalog'   => 2,
                     'available' => 1,
                     'save' => 'save'
                 ));
@@ -172,9 +178,9 @@ class BooksControllerTest extends Zend_Test_PHPUnit_ControllerTestCase
 
     public function testSearch() {
         $this->dispatch('/books/index');
-        $this->assertQueryContentContains('select#category', 'value=""');
-        $this->assertQueryContentContains('select#category', 'SciFi');
-        $this->assertQueryContentContains('select#category', 'Adventure');
+        $this->assertQueryContentContains('select#catalog', 'value=""');
+        $this->assertQueryContentContains('select#catalog', 'Upper floor');
+        $this->assertQueryContentContains('select#catalog', 'Lower floor');
 
         $this->assertQueryContentContains('dd#title-element', 'class="zs-search-text"');
         $this->assertQueryContentContains('dd#available-element', 'class="zs-search-radio"');

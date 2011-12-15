@@ -8,7 +8,7 @@ class ReadersControllerTest extends Zend_Test_PHPUnit_ControllerTestCase
     public function  __construct() {
         $this->bootstrap = realpath(dirname(__FILE__) . '/../bootstrap.php');
     }
-    
+
     public function setUp()
     {
         parent::setUp();
@@ -22,12 +22,12 @@ class ReadersControllerTest extends Zend_Test_PHPUnit_ControllerTestCase
         $books = new Application_Model_Books();
         // 2 books are expected
         $bookList = $books->select()->query()->fetchAll(Zend_Db::FETCH_OBJ);
-        
+
         $readerId = 0;
         $params = array(
                     'name'      => 'Reader ' . (++$readerId),
                     'created'   => date('Y-m-d H:i:s'),
-                    'books'     => array($bookList[0]->id, $bookList[1]->id),
+                    'Bookstitle'=> array($bookList[0]->id, $bookList[1]->id),
                     'category'  => 1,
                     'save'      => 'save'
                 );
@@ -46,7 +46,7 @@ class ReadersControllerTest extends Zend_Test_PHPUnit_ControllerTestCase
         $this->assertQueryContentContains('dd#name-element', 'value="Reader 1"');
         $this->assertQueryContentContains('select', 'value="' . $bookList[0]->id . '"');
         $this->assertQueryContentContains('select', 'value="' . $bookList[1]->id . '"');
-        
+
         $this->assertQueryContentContains('select#category', 'selected="selected"');
     }
 
@@ -62,7 +62,7 @@ class ReadersControllerTest extends Zend_Test_PHPUnit_ControllerTestCase
                     'id'        => $reader->id,
                     'name'      => 'Reader 1 updated',
                     'created'   => $reader->created,
-                    'books'     => array($bookList[0]->id),
+                    'Bookstitle'=> array($bookList[0]->id),
                     'save'      => 'Save'
                 );
         $request = $this->getRequest();
@@ -117,7 +117,7 @@ class ReadersControllerTest extends Zend_Test_PHPUnit_ControllerTestCase
         $this->dispatch('/readers/index');
 
         $this->assertNotQueryContentContains('th', 'Id');
-        $this->assertQueryContentContains('th', 'First &amp; last name');
+        $this->assertQueryContentContains('th', 'Name');
         $this->assertQueryContentContains('th', 'Created');
     }
 
@@ -126,7 +126,7 @@ class ReadersControllerTest extends Zend_Test_PHPUnit_ControllerTestCase
         $areader = $readers->select()->from($readers)->where('1 = 1')->limit(1)->query()->fetchObject();
 
         $this->dispatch('/readers/delete/id/' . $areader->id);
-        $this->assertQueryContentContains('body', 'This action is disabled.');
+        $this->assertQueryContentContains('body', "'delete' action is disabled");
     }
 
     public function testDatePicker() {
@@ -135,8 +135,8 @@ class ReadersControllerTest extends Zend_Test_PHPUnit_ControllerTestCase
     }
 
     public function testCustomDbSelect() {
-        $this->dispatch('/readers/index');
-        $this->assertQueryContentContains('th', 'Books assigned');
+        $this->dispatch('/readers/smartquery');
+        $this->assertQueryContentContains('th', 'Assigned books');
         $this->assertQueryContentContains('tr', '<td>1</td>');
     }
 }
