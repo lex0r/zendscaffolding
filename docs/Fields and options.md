@@ -56,8 +56,8 @@ class MyController extends Zend_Controller_Scaffolding {
                 'dataType' => 'integer'
             ),
         );
-        // use if you want to use advanced features
-        $this->scaffold($select, $fields);
+        // Call different method - smartQuery - if you want absolutely customizeable query
+        $this->smartQuery($select, $fields);
     }
 }
 ```
