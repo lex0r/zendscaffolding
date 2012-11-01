@@ -150,7 +150,7 @@ class Zend_Controller_Scaffolding extends Zend_Controller_Action
             'char', 'bpchar', 'varchar',
             'smalltext', 'text', 'mediumtext', 'longtext'
         ),
-        'time' => array('date', 'datetime', 'timestamp')
+        'time' => array('time', 'date', 'datetime', 'timestamp')
     );
     /**
      * Scaffolding field definitions.
